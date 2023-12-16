@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def hello_world():  # put application's code here
-    return 'Hello World MOtherfucker!'
+    return 'Hello World MOtherfucker!  <a href="competenssator">ici</a>'
 
 @app.route('/competenssator')
 def foobar():
