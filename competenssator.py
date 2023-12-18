@@ -27,6 +27,11 @@ class Style:
         self.stroke_dasharray = 5
         self.number_of_strokes = 1
 
+class Config:
+    def __init__(self, blackAndWhite, withBox):
+        self.blackAndWhite = blackAndWhite
+        self.withBox = withBox
+
 def split_string_by_length(text, max_length):
     words = text.split()
     segments = []
@@ -44,12 +49,14 @@ def split_string_by_length(text, max_length):
 
 def styles():
     styles = []
-    for width in range(1,2,3):
+    for width in range(1,4):
         for inverted in [True, False]:
             for dashy in [1, 5, 10]:
                 style = Style( "black", width, inverted)
                 style.stroke_dasharray = dashy
                 style.number_of_strokes = width
+                if width != 1 and dashy != 1:
+                    continue
                 styles.append(style)
     return styles
 
@@ -97,6 +104,8 @@ def draw_hexagon(dwg, center_x, center_y, row, col, size, text, style):
     perimeters = perimeters[0:number_of_strokes]
     fillColor = darkColor if style.inverted else lightColor
     strokeColor = lightColor if style.inverted else darkColor
+    # for the checkbox
+    xBox, yBox = (0, 0)
     for perimeter in perimeters:
         path = ""
         roundPercent = 0.15
@@ -105,6 +114,8 @@ def draw_hexagon(dwg, center_x, center_y, row, col, size, text, style):
             angle_rad = math.radians(30 + 60 * i)
             x = center_x + size * math.cos(angle_rad) * perimeter
             y = center_y + size * math.sin(angle_rad) * perimeter
+            if i == 0 and perimeter == 1.0:
+                xBox, yBox = center_x + size*.8 * math.cos(angle_rad) * perimeter, center_y + size*.8 * math.sin(angle_rad) * perimeter
             points.append((x, y))
         for i in range(6):
             x1, y1 = points[i]
@@ -118,11 +129,27 @@ def draw_hexagon(dwg, center_x, center_y, row, col, size, text, style):
                 path += " L " + str(x21) + "," + str(y21)
             path += " Q " + str(x2) + "," + str(y2) + " " + str(x23) + "," + str(y23)
         path += " Z"
-        dwg.add(dwg.path(d=path, fill=fillColor, stroke=strokeColor,
+        if (style.stroke_dasharray == 1):
+            dwg.add(dwg.path(d=path, fill=fillColor, stroke=strokeColor,
+                             stroke_width=stroke_width / number_of_strokes,
+                             stroke_linecap="round"))
+        else:
+            dwg.add(dwg.path(d=path, fill=fillColor, stroke=strokeColor,
                          stroke_width=stroke_width/number_of_strokes,
                          stroke_dasharray=str(style.stroke_dasharray)+","+str(style.stroke_dasharray),
                          stroke_linecap="round"))
-
+    dwg.add(dwg.circle(center=(xBox, yBox), r=4, fill='blue'))
+    points = []
+    points2 = []
+    for i in range(6):
+        angle_rad = math.radians(30 + 60 * i)
+        x, y = xBox + size/11 * math.cos(angle_rad), yBox + size/11 * math.sin(angle_rad)
+        x2, y2 = xBox + size/9 * math.cos(angle_rad), yBox + size/9 * math.sin(angle_rad)
+        points.append((x, y))
+        points2.append((x2, y2))
+        # dwg.add(dwg.circle(center=(x, y), r=2, fill='red'))
+    dwg.add(dwg.polygon(points2, fill=darkColor))
+    dwg.add(dwg.polygon(points, fill='white'))
     lines = split_string_by_length(text, 13)
     for i, line in enumerate(lines):
         lineheight = size/4
@@ -212,15 +239,20 @@ def yFor(rowA, size):
 def xFor(colA, rowA, size):
     return size * (2 * colA + (0 if rowA % 2 == 0 else 1) + 1)
 
-def read_skills_from_yaml(file_path):
+def yaml_from_filepath(file_path):
     with open(file_path, 'r') as file:
         data = yaml.safe_load(file)
-        return data.get('skills', [])
+        return data
 
-def read_deps_from_yaml(file_path):
-    with open(file_path, 'r') as file:
-        data = yaml.safe_load(file)
-        return data.get('deps', [])
+def yaml_from_string(stringy):
+    data = yaml.safe_load(stringy)
+    return data
+
+def read_skills_from_yaml(data):
+    return data.get('skills', [])
+
+def read_deps_from_yaml(data):
+    return data.get('deps', [])
 
 def bestCount(size):
     tailles = [(2,3), (3, 4), (4, 5), (5, 6), (6, 8), (7, 10), (8, 11), (9, 12)]
@@ -256,7 +288,7 @@ def hill_climb(strings, G, col, evaluationFunction):
         counter += 1
         evaluated = {}
         for individual in population:
-            score = evaluation(individual, G, col)
+            score = evaluationFunction(individual, G, col)
             if score > bestScore or score == 0:
                 bestScore = score
                 bestIndividual = individual
@@ -277,9 +309,16 @@ def hill_climb(strings, G, col, evaluationFunction):
                 population.append(newby)
     return bestScore, bestIndividual
 
-def yaml_to_svgs(file_path):
-    skills = read_skills_from_yaml(file_path)
-    deps = read_deps_from_yaml(file_path)
+def file_to_svgs(file_path):
+    data = yaml_from_filepath(file_path)
+    return yaml_to_svgs(data)
+def string_to_svgs(yaml):
+    data = yaml_from_string(yaml)
+    return yaml_to_svgs(data)
+
+def yaml_to_svgs(data):
+    skills = read_skills_from_yaml(data)
+    deps = read_deps_from_yaml(data)
     G = nx.DiGraph()
     for node in skills:
         G.add_node(node['name'])
@@ -326,7 +365,8 @@ def yaml_to_svgs(file_path):
 
 if __name__ == "__main__":
     file_path = '5N6.yaml'
-    results = yaml_to_svgs(file_path)
+    data = yaml_from_filepath(file_path)
+    results = yaml_to_svgs(data)
     for result in results:
         print(result)
 
