@@ -12,14 +12,14 @@ def hello_world():  # put application's code
     return render_template("test.html", name=user, yaml= yaml.dump(data))
 
 @app.route('/competenssator')
-def foobar():
+def compute_skill_tree():
     yaml = request.args.get('yaml')
     if yaml == None or yaml == "":
         file_path = '5N6.yaml'
         results = cs.file_to_svgs(file_path)
         return results[0]
     else:
-        print("yaml from request " + yaml)
+        #print("yaml from request " + yaml)
         results = cs.string_to_svgs(yaml)
         return results[0]
 

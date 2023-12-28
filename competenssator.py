@@ -22,15 +22,16 @@ darkColor = "rgb(10,10,10)"
 class Style:
     def __init__(self, stroke, stroke_width, inverted=False):
         self.stroke = stroke
+        self.color = "white"
         self.inverted = inverted
         self.stroke_width = stroke_width
         self.stroke_dasharray = 5
         self.number_of_strokes = 1
 
 class Config:
-    def __init__(self, blackAndWhite, withBox):
+    def __init__(self, blackAndWhite, withTickBox):
         self.blackAndWhite = blackAndWhite
-        self.withBox = withBox
+        self.withTickBox = withTickBox
 
 def split_string_by_length(text, max_length):
     words = text.split()
@@ -47,21 +48,34 @@ def split_string_by_length(text, max_length):
         segments.append(current_segment)
     return segments
 
-def styles():
+def styles(config):
     styles = []
-    for width in range(1,4):
-        for inverted in [True, False]:
-            for dashy in [1, 5, 10]:
-                style = Style( "black", width, inverted)
-                style.stroke_dasharray = dashy
-                style.number_of_strokes = width
-                if width != 1 and dashy != 1:
-                    continue
+    if config.blackAndWhite:
+        for width in range(1,4):
+            for inverted in [True, False]:
+                for dashy in [1, 5, 10]:
+                    style = Style( "black", width, inverted)
+                    style.stroke_dasharray = dashy
+                    style.number_of_strokes = width
+                    style.color = darkColor if inverted else lightColor
+                    style.stroke = lightColor if inverted else darkColor
+                    if width != 1 and dashy != 1:
+                        continue
+                    styles.append(style)
+    else:
+        colors = ["aquamarine", "lightblue", "lightgreen", "tomato", "lightyellow", "lightpink", "lightgrey"]
+        for width in range(1,4):
+            for color in colors:
+                style = Style( "black", width, False)
+                style.stroke_dasharray = 1
+                style.number_of_strokes = 1
+                style.stroke = darkColor
+                style.color = color
                 styles.append(style)
     return styles
 
-def styleFor(element, parts):
-    toutes =  styles()
+def styleFor(element, parts, config):
+    toutes =  styles(config)
     indexOfPart = find_part_containing(element, parts)
     return toutes[indexOfPart % len(toutes)]
 
@@ -95,15 +109,15 @@ def areIndexConnected(indexA, indexB, col):
     else:
         return False
 
-def draw_hexagon(dwg, center_x, center_y, row, col, size, text, style):
+def draw_hexagon(dwg, center_x, center_y, row, col, size, text, style, config):
     if text == "___":
         return
     stroke_width = 3
     number_of_strokes = style.number_of_strokes
     perimeters = [1.0, 0.95, .9, .85, .8, .75]
     perimeters = perimeters[0:number_of_strokes]
-    fillColor = darkColor if style.inverted else lightColor
-    strokeColor = lightColor if style.inverted else darkColor
+    fillColor = style.color
+    strokeColor = style.stroke
     # for the checkbox
     xBox, yBox = (0, 0)
     for perimeter in perimeters:
@@ -138,18 +152,18 @@ def draw_hexagon(dwg, center_x, center_y, row, col, size, text, style):
                          stroke_width=stroke_width/number_of_strokes,
                          stroke_dasharray=str(style.stroke_dasharray)+","+str(style.stroke_dasharray),
                          stroke_linecap="round"))
-    dwg.add(dwg.circle(center=(xBox, yBox), r=4, fill='blue'))
-    points = []
-    points2 = []
-    for i in range(6):
-        angle_rad = math.radians(30 + 60 * i)
-        x, y = xBox + size/11 * math.cos(angle_rad), yBox + size/11 * math.sin(angle_rad)
-        x2, y2 = xBox + size/9 * math.cos(angle_rad), yBox + size/9 * math.sin(angle_rad)
-        points.append((x, y))
-        points2.append((x2, y2))
-        # dwg.add(dwg.circle(center=(x, y), r=2, fill='red'))
-    dwg.add(dwg.polygon(points2, fill=darkColor))
-    dwg.add(dwg.polygon(points, fill='white'))
+    if config.withTickBox:
+        points = []
+        points2 = []
+        for i in range(6):
+            angle_rad = math.radians(30 + 60 * i)
+            x, y = xBox + size/11 * math.cos(angle_rad), yBox + size/11 * math.sin(angle_rad)
+            x2, y2 = xBox + size/9 * math.cos(angle_rad), yBox + size/9 * math.sin(angle_rad)
+            points.append((x, y))
+            points2.append((x2, y2))
+            # dwg.add(dwg.circle(center=(x, y), r=2, fill='red'))
+        dwg.add(dwg.polygon(points2, fill=darkColor))
+        dwg.add(dwg.polygon(points, fill='white'))
     lines = split_string_by_length(text, 13)
     for i, line in enumerate(lines):
         lineheight = size/4
@@ -173,7 +187,7 @@ def find_part_containing(element, parts):
     return res
 
 
-def draw_skill_tree(size, skills, G, rowCount, colCount):
+def draw_skill_tree(size, skills, G, rowCount, colCount, config):
     # gridsize = math.floor(math.sqrt(len(skills)))
     # name the file with the date and time
     file_name = "results/" + str(datetime.now()) + ".svg"
@@ -199,12 +213,8 @@ def draw_skill_tree(size, skills, G, rowCount, colCount):
         # colors = ["aquamarine", "lightblue", "lightgreen", "tomato"]
         # fillColors = random.randrange(0, len(colors))
         # fillColor = colors[fillColors]
-        style = styleFor(element, parts)
-        if index == 11:
-            fillColor = "red"
-        if areIndexConnected(11, index, colCount):
-            fillColor = "blue"
-        draw_hexagon(dwg, x, y, row, col,  size, element, style)
+        style = styleFor(element, parts, config)
+        draw_hexagon(dwg, x, y, row, col,  size, element, style, config)
     # add arrows for dependencies
     marker = dwg.defs.add(
         dwg.marker(insert=(1, 1), size=(2, 2), orient='auto', markerUnits='strokeWidth', id='arrowhead'))
@@ -316,33 +326,42 @@ def string_to_svgs(yaml):
     data = yaml_from_string(yaml)
     return yaml_to_svgs(data)
 
+
+def read_config_from_yaml(data):
+    config = data.get('config', [])
+    return Config(config.get('blackAndWhite', True), config.get('withTickBox', True))
+
+
 def yaml_to_svgs(data):
+    config = read_config_from_yaml(data)
+    #print("Config: " + str(config.blackAndWhite) + " " + str(config.withTickBox))
     skills = read_skills_from_yaml(data)
     deps = read_deps_from_yaml(data)
-    G = nx.DiGraph()
-    for node in skills:
-        G.add_node(node['name'])
-    for dep in deps:
-        G.add_edge(dep['from'], dep['to'])
-    sources = []
-    for s in skills:
-        predCount = sum(1 for dummy in G.predecessors(s["name"]))
-        succCount = sum(1 for dummy in G.successors(s["name"]))
-        # print("   connection size " + str(predCount + succCount) + "  " + s["name"])
-        if predCount + succCount > 6:
-            print("ALERT ALERT ALERT Too many connecting ones ")
-        if predCount == 0:
-            sources.append(s)
-            # print("Source " + s["name"])
-    print("Sources: " + str(sources))
+    G = generate_graph(deps, skills)
+    sources = compute_sources(G, skills)
     strings = []
     for node in skills:
         strings.append(node["name"])
+    # compute the best combo sizes for the number of skills
     (row, col) = bestCount(len(strings))
-    # print("row " + str(row) + " col " + str(col))
     contentSize = row * col
+    # pad the grid with placeholders for empty hexagons
     for i in range(0, contentSize - len(strings)):
         strings.append("___")
+
+    prep_results_folder()
+    results = []
+    for round in range(1, 10):
+        bestScore, bestIndividual = hill_climb(strings, G, col, evaluation)
+        print("best score " + str(bestScore))
+        # print("best individual " + str(bestIndividual))
+        if bestScore == 0:
+            svg = draw_skill_tree(50, bestIndividual, G, row, col, config)
+            results.append(svg)
+    return results
+
+
+def prep_results_folder():
     path = os.path.join(".", "results")
     try:
         shutil.rmtree(path)
@@ -353,15 +372,30 @@ def yaml_to_svgs(data):
         os.mkdir(path)
     except OSError as error:
         print(error)
-    results = []
-    for round in range(1, 10):
-        bestScore, bestIndividual = hill_climb(strings, G, col, evaluation)
-        print("best score " + str(bestScore))
-        # print("best individual " + str(bestIndividual))
-        if bestScore == 0:
-            svg = draw_skill_tree(50, bestIndividual, G, row, col)
-            results.append(svg)
-    return results
+
+
+def compute_sources(G, skills):
+    sources = []
+    for s in skills:
+        predCount = sum(1 for dummy in G.predecessors(s["name"]))
+        succCount = sum(1 for dummy in G.successors(s["name"]))
+        # print("   connection size " + str(predCount + succCount) + "  " + s["name"])
+        if predCount + succCount > 6:
+            print("ALERT ALERT ALERT Too many connecting ones ")
+        if predCount == 0:
+            sources.append(s)
+            # print("Source " + s["name"])
+    # print("Sources: " + str(sources))
+    return sources
+
+def generate_graph(deps, skills):
+    G = nx.DiGraph()
+    for node in skills:
+        G.add_node(node['name'])
+    for dep in deps:
+        G.add_edge(dep['from'], dep['to'])
+    return G
+
 
 if __name__ == "__main__":
     file_path = '5N6.yaml'

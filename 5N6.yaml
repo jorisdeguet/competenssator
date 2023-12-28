@@ -1,6 +1,6 @@
 config:
   blackAndWhite: true
-  withBox: true
+  withTickBox: true
 
 skills:
   - name: "UI basique"
