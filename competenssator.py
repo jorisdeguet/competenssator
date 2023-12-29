@@ -329,17 +329,11 @@ def read_config_from_yaml(data):
 def yaml_to_svgs(data):
     config = read_config_from_yaml(data)
     #print("Config: " + str(config.blackAndWhite) + " " + str(config.withTickBox))
-    skills = read_skills_from_yaml(data)
-    deps = read_deps_from_yaml(data)
-    G = None
-    if deps == None or len(deps) == 0:
-        G = generate_graph_sequels(skills)
-    else:
-        G = generate_graph(deps, skills)
-    sources = compute_sources(G, skills)
+    G = get_graph_from_data(data)
+    sources = compute_sources(G)
     strings = []
-    for node in skills:
-        strings.append(node["name"])
+    for node in G:
+        strings.append(node)
     # compute the best combo sizes for the number of skills
     (row, col) = bestCount(len(strings))
     contentSize = row * col
@@ -359,6 +353,17 @@ def yaml_to_svgs(data):
     return results
 
 
+def get_graph_from_data(data):
+    skills = read_skills_from_yaml(data)
+    deps = read_deps_from_yaml(data)
+    G = None
+    if deps == None or len(deps) == 0:
+        G = generate_graph_sequels(skills)
+    else:
+        G = generate_graph(deps, skills)
+    return G
+
+
 def prep_results_folder():
     path = os.path.join(".", "results")
     try:
@@ -372,11 +377,11 @@ def prep_results_folder():
         print(error)
 
 
-def compute_sources(G, skills):
+def compute_sources(G):
     sources = []
-    for s in skills:
-        predCount = sum(1 for dummy in G.predecessors(s["name"]))
-        succCount = sum(1 for dummy in G.successors(s["name"]))
+    for s in G.nodes:
+        predCount = sum(1 for dummy in G.predecessors(s))
+        succCount = sum(1 for dummy in G.successors(s))
         # print("   connection size " + str(predCount + succCount) + "  " + s["name"])
         if predCount + succCount > 6:
             print("ALERT ALERT ALERT Too many connecting ones ")
@@ -400,6 +405,7 @@ def generate_graph_sequels(skills):
         G.add_node(node['name'])
         if 'sequels' in node:
             for seq in node['sequels']:
+                G.add_node(seq)
                 G.add_edge(node['name'], seq)
     return G
 
