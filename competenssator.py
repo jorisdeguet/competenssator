@@ -188,8 +188,6 @@ def find_part_containing(element, parts):
 
 
 def draw_skill_tree(size, skills, G, rowCount, colCount, config):
-    # gridsize = math.floor(math.sqrt(len(skills)))
-    # name the file with the date and time
     file_name = "results/" + str(datetime.now()) + ".svg"
     dwg = svgwrite.Drawing(
         filename=file_name,
@@ -202,7 +200,6 @@ def draw_skill_tree(size, skills, G, rowCount, colCount, config):
             rx=None, ry=None,
             fill=backgroundColor))
     parts = list(nx.connected_components(G.to_undirected()))
-    # print("parts " + str(parts))
     for element in skills:
         # find the part containing the skill named element
         index = skills.index(element)
@@ -210,9 +207,6 @@ def draw_skill_tree(size, skills, G, rowCount, colCount, config):
         col = index % colCount
         x = size * (2 * col + (0 if row % 2 == 0 else 1) + 1)
         y = size *  (0.5 + row * math.sqrt(3) + math.sqrt(3) / 2)
-        # colors = ["aquamarine", "lightblue", "lightgreen", "tomato"]
-        # fillColors = random.randrange(0, len(colors))
-        # fillColor = colors[fillColors]
         style = styleFor(element, parts, config)
         draw_hexagon(dwg, x, y, row, col,  size, element, style, config)
     # add arrows for dependencies
