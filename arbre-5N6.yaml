@@ -1,0 +1,32 @@
+config:
+  blackAndWhite: true
+  withTickBox: true
+
+skills:
+  - name: "UI basique"
+    sequels: ["Multilingue", "Flutter Column et Row"]
+  - name: "Flutter Column et Row"
+    sequels: ["Dimensions, flex et enfants"]
+  - name: "Dimensions, flex et enfants"
+  - name: "Navigation"
+    sequels: ["Navigation tiroir"]
+  - name: "Navigation tiroir"
+  - name: "ListView explicite"
+    sequels: ["ListView map et converter"]
+  - name: "ListView map et converter"
+  - name: "HTTP DIO"
+    sequels: ["DIO JSON", "DIO cookie", "DIO erreurs"]
+  - name: "DIO JSON"
+    description: "Objets JSON, serialisation, POST vs. GET"
+  - name: "DIO cookie"
+  - name: "DIO erreurs"
+  - name: "Firebase intro"
+    sequels: ["Firebase authentification", "Firestore intro"]
+  - name: "Firebase authentification"
+  - name: "Firestore intro"
+    sequels: ["Firestore contrôle d'accès", "Firestore typés", "Firestore requêtes"]
+  - name: "Firestore contrôle d'accès"
+  - name: "Firestore typés"
+  - name: "Firestore requêtes"
+  - name: "Multilingue"
+
