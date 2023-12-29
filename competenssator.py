@@ -331,7 +331,11 @@ def yaml_to_svgs(data):
     #print("Config: " + str(config.blackAndWhite) + " " + str(config.withTickBox))
     skills = read_skills_from_yaml(data)
     deps = read_deps_from_yaml(data)
-    G = generate_graph(deps, skills)
+    G = None
+    if deps == None or len(deps) == 0:
+        G = generate_graph_sequels(skills)
+    else:
+        G = generate_graph(deps, skills)
     sources = compute_sources(G, skills)
     strings = []
     for node in skills:
@@ -390,9 +394,17 @@ def generate_graph(deps, skills):
         G.add_edge(dep['from'], dep['to'])
     return G
 
+def generate_graph_sequels(skills):
+    G = nx.DiGraph()
+    for node in skills:
+        G.add_node(node['name'])
+        if 'sequels' in node:
+            for seq in node['sequels']:
+                G.add_edge(node['name'], seq)
+    return G
 
 if __name__ == "__main__":
-    file_path = '5N6.yaml'
+    file_path = 'arbre-5N6.yaml'
     data = yaml_from_filepath(file_path)
     results = yaml_to_svgs(data)
     for result in results:
