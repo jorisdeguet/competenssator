@@ -6,16 +6,57 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.4/css/bulma.min.css" integrity="sha512-HqxHUkJM0SYcbvxUw5P60SzdOTy/QVwA1JJrvaXJv4q7lmbDZCmZaqz01UPOaQveoxfYRv1tHozWGPMcuTBuvQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     </head>
     <body>
-        <h3>Hello {{name}}</h3>
-        <form action="/competenssator" method="GET">
-<!--            <input type="text" name="name" placeholder="Enter your name" />-->
+        <h3>Crée </h3>
+        <div class="tile is-ancestor">
+            <div class="tile is-parent">
+                 <article class="tile is-child notification is-light">
+                    <div class="content">
+                        <p class="title">Ton arbre de compétences avec Competenssator</p>
+                        <div class="content">
+                            Un projet de création d'arbre de compétences en ligne avec les technos suivantes :
+                            <ul>
+                                <li>Code principal en Python</li>
+                                <li>Application Web en Flask avec Jinja2 comme moteur de template</li>
+                                <li>YAML pour le fichier de description</li>
+                                <li>Les arbres de compétences sont générés en SVG</li>
+                                <li>Cette page est stylisée avec Bulma</li>
+                                <li>Ce site </li>
+                            </ul>
 
-            <textarea name="yaml" placeholder="Enter your message" style="width: 400px;height: 300px;">{{yaml}}</textarea>
-            <p>
-                <input class="button" type="submit" value="Submit" />
-
-                 <a class="button">A Bulma Button</a>
-            </p>
-        </form>
+                            <h4>Quelques exemples</h4>
+                            <p>
+                                <a class="button" href="/competenssator?yaml=config%3A%0D%0A++blackAndWhite%3A+true%0D%0A++withTickBox%3A+true%0D%0Adeps%3A%0D%0A-+from%3A+HTTP+DIO%0D%0A++to%3A+DIO+JSON%0D%0A-+from%3A+HTTP+DIO%0D%0A++to%3A+DIO+cookie%0D%0A-+from%3A+HTTP+DIO%0D%0A++to%3A+DIO+erreurs%0D%0A-+from%3A+UI+basique%0D%0A++to%3A+Flutter+Column+et+Row%0D%0A-+from%3A+UI+basique%0D%0A++to%3A+Multilingue%0D%0A-+from%3A+Flutter+Column+et+Row%0D%0A++to%3A+Dimensions%2C+flex+et+enfants%0D%0A-+from%3A+Navigation%0D%0A++to%3A+Navigation+tiroir%0D%0A-+from%3A+Firebase+intro%0D%0A++to%3A+Firebase+authentification%0D%0A-+from%3A+Firebase+intro%0D%0A++to%3A+Firestore+intro%0D%0A-+from%3A+Firestore+intro%0D%0A++to%3A+%22Firestore+typ%5CxE9s%22%0D%0A-+from%3A+Firestore+intro%0D%0A++to%3A+%22Firestore+contr%5CxF4le+d%27acc%5CxE8s%22%0D%0A-+from%3A+Firestore+intro%0D%0A++to%3A+%22Firestore+requ%5CxEAtes%22%0D%0A-+from%3A+ListView+explicite%0D%0A++to%3A+ListView+map+et+converter%0D%0Askills%3A%0D%0A-+description%3A+Bouton%2C+onPressed%0D%0A++name%3A+UI+basique%0D%0A-+description%3A+Column%2C+Row%0D%0A++name%3A+Flutter+Column+et+Row%0D%0A-+description%3A+Nesting%2C+dimensionnement%0D%0A++name%3A+Dimensions%2C+flex+et+enfants%0D%0A-+description%3A+Navigator%2C+push%2C+pop%0D%0A++name%3A+Navigation%0D%0A-+description%3A+Tiroir+de+navigation%0D%0A++name%3A+Navigation+tiroir%0D%0A-+description%3A+ListView%2C+liste+explicite%2C+liste++avec+map+et+converter%0D%0A++name%3A+ListView+explicite%0D%0A-+description%3A+ListView%2C+liste+explicite%2C+liste++avec+map+et+converter%0D%0A++name%3A+ListView+map+et+converter%0D%0A-+description%3A+%22Appel+%5CxE0+DIO%2C+type+simple%22%0D%0A++name%3A+HTTP+DIO%0D%0A-+description%3A+Objets+JSON%2C+serialisation%2C+POST+vs.+GET%0D%0A++name%3A+DIO+JSON%0D%0A-+description%3A+Cookie%2C+singleton%2C+intercepteur%0D%0A++name%3A+DIO+cookie%0D%0A-+description%3A+%22Gestion+des+erreurs%2C+s%5CxE9paration+service+et+UI%22%0D%0A++name%3A+DIO+erreurs%0D%0A-+description%3A+Projet%2C+librairies%0D%0A++name%3A+Firebase+intro%0D%0A-+description%3A+Authentification%2C+Google+SignIn%0D%0A++name%3A+Firebase+authentification%0D%0A-+description%3A+Ecriture+simple%2C+console%0D%0A++name%3A+Firestore+intro%0D%0A-+description%3A+Ecriture+simple%2C+console%0D%0A++name%3A+%22Firestore+contr%5CxF4le+d%27acc%5CxE8s%22%0D%0A-+description%3A+%22Acc%5CxE8s+typ%5CxE9es%22%0D%0A++name%3A+%22Firestore+typ%5CxE9s%22%0D%0A-+description%3A+%27%27%0D%0A++name%3A+%22Firestore+requ%5CxEAtes%22%0D%0A-+description%3A+Gestion+d%27interface+en+FR+et+EN%0D%0A++name%3A+Multilingue%0D%0A">
+                                    En noir et blanc, avec des cases à cocher
+                                </a>
+                            </p>
+                            <p>
+                                <a class="button" href="/competenssator?yaml=config%3A%0D%0A++blackAndWhite%3A+true%0D%0A++withTickBox%3A+false%0D%0Adeps%3A%0D%0A-+from%3A+HTTP+DIO%0D%0A++to%3A+DIO+JSON%0D%0A-+from%3A+HTTP+DIO%0D%0A++to%3A+DIO+cookie%0D%0A-+from%3A+HTTP+DIO%0D%0A++to%3A+DIO+erreurs%0D%0A-+from%3A+UI+basique%0D%0A++to%3A+Flutter+Column+et+Row%0D%0A-+from%3A+UI+basique%0D%0A++to%3A+Multilingue%0D%0A-+from%3A+Flutter+Column+et+Row%0D%0A++to%3A+Dimensions%2C+flex+et+enfants%0D%0A-+from%3A+Navigation%0D%0A++to%3A+Navigation+tiroir%0D%0A-+from%3A+Firebase+intro%0D%0A++to%3A+Firebase+authentification%0D%0A-+from%3A+Firebase+intro%0D%0A++to%3A+Firestore+intro%0D%0A-+from%3A+Firestore+intro%0D%0A++to%3A+%22Firestore+typ%5CxE9s%22%0D%0A-+from%3A+Firestore+intro%0D%0A++to%3A+%22Firestore+contr%5CxF4le+d%27acc%5CxE8s%22%0D%0A-+from%3A+Firestore+intro%0D%0A++to%3A+%22Firestore+requ%5CxEAtes%22%0D%0A-+from%3A+ListView+explicite%0D%0A++to%3A+ListView+map+et+converter%0D%0Askills%3A%0D%0A-+description%3A+Bouton%2C+onPressed%0D%0A++name%3A+UI+basique%0D%0A-+description%3A+Column%2C+Row%0D%0A++name%3A+Flutter+Column+et+Row%0D%0A-+description%3A+Nesting%2C+dimensionnement%0D%0A++name%3A+Dimensions%2C+flex+et+enfants%0D%0A-+description%3A+Navigator%2C+push%2C+pop%0D%0A++name%3A+Navigation%0D%0A-+description%3A+Tiroir+de+navigation%0D%0A++name%3A+Navigation+tiroir%0D%0A-+description%3A+ListView%2C+liste+explicite%2C+liste++avec+map+et+converter%0D%0A++name%3A+ListView+explicite%0D%0A-+description%3A+ListView%2C+liste+explicite%2C+liste++avec+map+et+converter%0D%0A++name%3A+ListView+map+et+converter%0D%0A-+description%3A+%22Appel+%5CxE0+DIO%2C+type+simple%22%0D%0A++name%3A+HTTP+DIO%0D%0A-+description%3A+Objets+JSON%2C+serialisation%2C+POST+vs.+GET%0D%0A++name%3A+DIO+JSON%0D%0A-+description%3A+Cookie%2C+singleton%2C+intercepteur%0D%0A++name%3A+DIO+cookie%0D%0A-+description%3A+%22Gestion+des+erreurs%2C+s%5CxE9paration+service+et+UI%22%0D%0A++name%3A+DIO+erreurs%0D%0A-+description%3A+Projet%2C+librairies%0D%0A++name%3A+Firebase+intro%0D%0A-+description%3A+Authentification%2C+Google+SignIn%0D%0A++name%3A+Firebase+authentification%0D%0A-+description%3A+Ecriture+simple%2C+console%0D%0A++name%3A+Firestore+intro%0D%0A-+description%3A+Ecriture+simple%2C+console%0D%0A++name%3A+%22Firestore+contr%5CxF4le+d%27acc%5CxE8s%22%0D%0A-+description%3A+%22Acc%5CxE8s+typ%5CxE9es%22%0D%0A++name%3A+%22Firestore+typ%5CxE9s%22%0D%0A-+description%3A+%27%27%0D%0A++name%3A+%22Firestore+requ%5CxEAtes%22%0D%0A-+description%3A+Gestion+d%27interface+en+FR+et+EN%0D%0A++name%3A+Multilingue%0D%0A">
+                                    En noir et blanc
+                                </a>
+                            </p>
+                            <p>
+                                <a class="button" href="/competenssator?yaml=config%3A%0D%0A++blackAndWhite%3A+false%0D%0A++withTickBox%3A+true%0D%0Adeps%3A%0D%0A-+from%3A+HTTP+DIO%0D%0A++to%3A+DIO+JSON%0D%0A-+from%3A+HTTP+DIO%0D%0A++to%3A+DIO+cookie%0D%0A-+from%3A+HTTP+DIO%0D%0A++to%3A+DIO+erreurs%0D%0A-+from%3A+UI+basique%0D%0A++to%3A+Flutter+Column+et+Row%0D%0A-+from%3A+UI+basique%0D%0A++to%3A+Multilingue%0D%0A-+from%3A+Flutter+Column+et+Row%0D%0A++to%3A+Dimensions%2C+flex+et+enfants%0D%0A-+from%3A+Navigation%0D%0A++to%3A+Navigation+tiroir%0D%0A-+from%3A+Firebase+intro%0D%0A++to%3A+Firebase+authentification%0D%0A-+from%3A+Firebase+intro%0D%0A++to%3A+Firestore+intro%0D%0A-+from%3A+Firestore+intro%0D%0A++to%3A+%22Firestore+typ%5CxE9s%22%0D%0A-+from%3A+Firestore+intro%0D%0A++to%3A+%22Firestore+contr%5CxF4le+d%27acc%5CxE8s%22%0D%0A-+from%3A+Firestore+intro%0D%0A++to%3A+%22Firestore+requ%5CxEAtes%22%0D%0A-+from%3A+ListView+explicite%0D%0A++to%3A+ListView+map+et+converter%0D%0Askills%3A%0D%0A-+description%3A+Bouton%2C+onPressed%0D%0A++name%3A+UI+basique%0D%0A-+description%3A+Column%2C+Row%0D%0A++name%3A+Flutter+Column+et+Row%0D%0A-+description%3A+Nesting%2C+dimensionnement%0D%0A++name%3A+Dimensions%2C+flex+et+enfants%0D%0A-+description%3A+Navigator%2C+push%2C+pop%0D%0A++name%3A+Navigation%0D%0A-+description%3A+Tiroir+de+navigation%0D%0A++name%3A+Navigation+tiroir%0D%0A-+description%3A+ListView%2C+liste+explicite%2C+liste++avec+map+et+converter%0D%0A++name%3A+ListView+explicite%0D%0A-+description%3A+ListView%2C+liste+explicite%2C+liste++avec+map+et+converter%0D%0A++name%3A+ListView+map+et+converter%0D%0A-+description%3A+%22Appel+%5CxE0+DIO%2C+type+simple%22%0D%0A++name%3A+HTTP+DIO%0D%0A-+description%3A+Objets+JSON%2C+serialisation%2C+POST+vs.+GET%0D%0A++name%3A+DIO+JSON%0D%0A-+description%3A+Cookie%2C+singleton%2C+intercepteur%0D%0A++name%3A+DIO+cookie%0D%0A-+description%3A+%22Gestion+des+erreurs%2C+s%5CxE9paration+service+et+UI%22%0D%0A++name%3A+DIO+erreurs%0D%0A-+description%3A+Projet%2C+librairies%0D%0A++name%3A+Firebase+intro%0D%0A-+description%3A+Authentification%2C+Google+SignIn%0D%0A++name%3A+Firebase+authentification%0D%0A-+description%3A+Ecriture+simple%2C+console%0D%0A++name%3A+Firestore+intro%0D%0A-+description%3A+Ecriture+simple%2C+console%0D%0A++name%3A+%22Firestore+contr%5CxF4le+d%27acc%5CxE8s%22%0D%0A-+description%3A+%22Acc%5CxE8s+typ%5CxE9es%22%0D%0A++name%3A+%22Firestore+typ%5CxE9s%22%0D%0A-+description%3A+%27%27%0D%0A++name%3A+%22Firestore+requ%5CxEAtes%22%0D%0A-+description%3A+Gestion+d%27interface+en+FR+et+EN%0D%0A++name%3A+Multilingue%0D%0A">
+                                    En couleurs
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </article>
+                <article class="tile is-child notification is-dark ">
+                    <div class="content">
+                        <p class="title">Mon arbre</p>
+                        <p class="subtitle">Entrer les compétences et les liens</p>
+                        <div class="content">
+                            <form action="/competenssator" method="GET">
+                                <textarea name="yaml" placeholder="Enter your message" style="font-family:'courier';width: 100%;height: 500px;">{{yaml}}</textarea>
+                                <p>
+                                    <input class="button" type="submit" value="Voir mon arbre" />
+                                </p>
+                            </form>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
     </body>
 </html>
