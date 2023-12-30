@@ -33,6 +33,61 @@ class Config:
         self.blackAndWhite = blackAndWhite
         self.withTickBox = withTickBox
 
+class HexGrid:
+    def __init__(self, size, rowCount, colCount):
+        self.size = size
+        self.rowCount = rowCount
+        self.colCount = colCount
+
+    def rowFor(self, index):
+        return index // self.colCount
+    def colFor(self, index):
+        return index % self.colCount
+
+    def rowAndColFor(self, index):
+        return (self.rowFor(index), self.colFor(index))
+    def yFor(self, rowA):
+        return self.size * (0.5 + rowA * math.sqrt(3) + math.sqrt(3) / 2)
+    def xFor(self, colA, rowA):
+        return self.size * (2 * colA + (0 if rowA % 2 == 0 else 1) + 1)
+
+    def areIndexConnected(self, indexA, indexB):
+        indexA, indexB = (min(indexA, indexB), max(indexA, indexB))
+        rowA, colA = (self.rowFor(indexA), self.colFor(indexA))
+        rowB, colB = (self.rowFor(indexB), self.colFor(indexB))
+        diffRow = abs(rowA - rowB)
+        diffCol = abs(colA - colB)
+        if diffRow == 0:
+            return  diffCol == 1
+        elif diffRow > 1:
+            return False
+        elif diffRow == 1:
+            if diffCol == 0:
+                return True
+            elif rowA % 2 == 0:
+                return colA - colB == 1
+            elif rowA % 2 == 1:
+                return colB - colA == 1
+        else:
+            return False
+    def distance(self, indexA, indexB):
+        if self.areIndexConnected(indexA, indexB):
+            return 0
+        else:
+            indexA, indexB = (min(indexA, indexB), max(indexA, indexB))
+            rowA, colA = (self.rowFor(indexA), self.colFor(indexA))
+            rowB, colB = (self.rowFor(indexB), self.colFor(indexB))
+            diffRow = abs(rowA - rowB)
+            diffCol = abs(colA - colB)
+            return diffRow + diffCol + 1
+    @staticmethod
+    def bestCount(size):
+        tailles = [(2, 3), (3, 4), (4, 5), (5, 6), (6, 8), (7, 10), (8, 11), (9, 12)]
+        for (row, col) in tailles:
+            if row * col >= size:
+                return (row, col)
+
+
 def split_string_by_length(text, max_length):
     words = text.split()
     segments = []
@@ -79,37 +134,9 @@ def styleFor(element, parts, config):
     indexOfPart = find_part_containing(element, parts)
     return toutes[indexOfPart % len(toutes)]
 
-def distance(indexA, indexB, col):
-    if areIndexConnected(indexA, indexB, col):
-        return 0
-    else:
-        indexA, indexB = (min(indexA, indexB), max(indexA, indexB))
-        rowA, colA = (indexA // col, indexA % col)
-        rowB, colB = (indexB // col, indexB % col)
-        diffRow = abs(rowA - rowB)
-        diffCol = abs(colA - colB)
-        return diffRow + diffCol + 1
-def areIndexConnected(indexA, indexB, col):
-    indexA, indexB = (min(indexA, indexB), max(indexA, indexB))
-    rowA, colA = (indexA // col, indexA % col)
-    rowB, colB = (indexB // col, indexB % col)
-    diffRow = abs(rowA - rowB)
-    diffCol = abs(colA - colB)
-    if diffRow == 0:
-        return  diffCol == 1
-    elif diffRow > 1:
-        return False
-    elif diffRow == 1:
-        if diffCol == 0:
-            return True
-        elif rowA % 2 == 0:
-            return colA - colB == 1
-        elif rowA % 2 == 1:
-            return colB - colA == 1
-    else:
-        return False
 
-def draw_hexagon(dwg, center_x, center_y, row, col, size, text, style, config):
+
+def draw_hexagon(dwg, center_x, center_y, grid, text, style, config):
     if text == "___":
         return
     stroke_width = 3
@@ -126,10 +153,11 @@ def draw_hexagon(dwg, center_x, center_y, row, col, size, text, style, config):
         points = []
         for i in range(6):
             angle_rad = math.radians(30 + 60 * i)
-            x = center_x + size * math.cos(angle_rad) * perimeter
-            y = center_y + size * math.sin(angle_rad) * perimeter
+            x = center_x + grid.size * math.cos(angle_rad) * perimeter
+            y = center_y + grid.size * math.sin(angle_rad) * perimeter
             if i == 0 and perimeter == 1.0:
-                xBox, yBox = center_x + size*.8 * math.cos(angle_rad) * perimeter, center_y + size*.8 * math.sin(angle_rad) * perimeter
+                xBox, yBox = (center_x + grid.size*.8 * math.cos(angle_rad) * perimeter,
+                              center_y + grid.size*.8 * math.sin(angle_rad) * perimeter)
             points.append((x, y))
         for i in range(6):
             x1, y1 = points[i]
@@ -157,8 +185,8 @@ def draw_hexagon(dwg, center_x, center_y, row, col, size, text, style, config):
         points2 = []
         for i in range(6):
             angle_rad = math.radians(30 + 60 * i)
-            x, y = xBox + size/11 * math.cos(angle_rad), yBox + size/11 * math.sin(angle_rad)
-            x2, y2 = xBox + size/9 * math.cos(angle_rad), yBox + size/9 * math.sin(angle_rad)
+            x, y = xBox + grid.size/11 * math.cos(angle_rad), yBox + grid.size/11 * math.sin(angle_rad)
+            x2, y2 = xBox + grid.size/9 * math.cos(angle_rad), yBox + grid.size/9 * math.sin(angle_rad)
             points.append((x, y))
             points2.append((x2, y2))
             # dwg.add(dwg.circle(center=(x, y), r=2, fill='red'))
@@ -166,12 +194,12 @@ def draw_hexagon(dwg, center_x, center_y, row, col, size, text, style, config):
         dwg.add(dwg.polygon(points, fill='white'))
     lines = split_string_by_length(text, 13)
     for i, line in enumerate(lines):
-        lineheight = size/4
+        lineheight = grid.size/4
         text_element = dwg.text(line,
-                                insert=(center_x, center_y-size/3+lineheight*i),
+                                insert=(center_x, center_y-grid.size/3+lineheight*i),
                                 fill=strokeColor,
                                 font_family="Arial",
-                                font_size=size * 0.17,
+                                font_size=grid.size * 0.17,
                                 text_anchor='middle',
                                 transform="rotate(-30, " + str(center_x) + ", " + str(center_y) + ")")
         #text_element.add(dwg.tspan(line, dx=[0], dy=[(10*i)] ))
@@ -187,12 +215,12 @@ def find_part_containing(element, parts):
     return res
 
 
-def draw_skill_tree(size, skills, G, rowCount, colCount, config):
+def draw_skill_tree(skills, G, grid, config):
     file_name = "results/" + str(datetime.now()) + ".svg"
     dwg = svgwrite.Drawing(
         filename=file_name,
         profile='full',
-        size=(str(size * (2*colCount+ 1) ), str(size * (2*rowCount+.5))))
+        size=(str(grid.size * (2*grid.colCount+ 1) ), str(grid.size * (2*grid.rowCount+.5))))
     dwg.add(
         dwg.rect(
             insert=(0, 0),
@@ -203,12 +231,11 @@ def draw_skill_tree(size, skills, G, rowCount, colCount, config):
     for element in skills:
         # find the part containing the skill named element
         index = skills.index(element)
-        row = index // colCount
-        col = index % colCount
-        x = size * (2 * col + (0 if row % 2 == 0 else 1) + 1)
-        y = size *  (0.5 + row * math.sqrt(3) + math.sqrt(3) / 2)
+        (row, col) = grid.rowAndColFor(index)
+        x = grid.size * (2 * col + (0 if row % 2 == 0 else 1) + 1)
+        y = grid.size *  (0.5 + row * math.sqrt(3) + math.sqrt(3) / 2)
         style = styleFor(element, parts, config)
-        draw_hexagon(dwg, x, y, row, col,  size, element, style, config)
+        draw_hexagon(dwg, x, y, grid, element, style, config)
     # add arrows for dependencies
     marker = dwg.defs.add(
         dwg.marker(insert=(1, 1), size=(2, 2), orient='auto', markerUnits='strokeWidth', id='arrowhead'))
@@ -219,12 +246,12 @@ def draw_skill_tree(size, skills, G, rowCount, colCount, config):
     for (a, b) in G.edges:
         indexA = skills.index(a)
         indexB = skills.index(b)
-        rowA, colA = (indexA // colCount, indexA % colCount)
-        rowB, colB = (indexB // colCount, indexB % colCount)
-        x1 = xFor(colA, rowA, size)
-        y1 = yFor(rowA, size)
-        x2 = xFor(colB, rowB, size)
-        y2 = yFor(rowB, size)
+        rowA, colA = grid.rowAndColFor(indexA)
+        rowB, colB = grid.rowAndColFor(indexB)
+        x1 = grid.xFor(colA, rowA)
+        y1 = grid.yFor(rowA)
+        x2 = grid.xFor(colB, rowB)
+        y2 = grid.yFor(rowB)
         xStart, yStart = (x1 + (x2 - x1)* 2/5, y1 + (y2 - y1) * 2/5)
         xEnd, yEnd = (x1 + (x2 - x1) * 3/5, y1 + (y2 - y1) * 3/5)
         # draw an arrow at the third of the line
@@ -237,11 +264,7 @@ def draw_skill_tree(size, skills, G, rowCount, colCount, config):
     renderPDF.drawToFile(drawing, "./results/file.pdf")
     return dwg.tostring()
 
-def yFor(rowA, size):
-    return size * (0.5 + rowA * math.sqrt(3) + math.sqrt(3) / 2)
 
-def xFor(colA, rowA, size):
-    return size * (2 * colA + (0 if rowA % 2 == 0 else 1) + 1)
 
 def yaml_from_filepath(file_path):
     with open(file_path, 'r') as file:
@@ -258,20 +281,23 @@ def read_skills_from_yaml(data):
 def read_deps_from_yaml(data):
     return data.get('deps', [])
 
-def bestCount(size):
-    tailles = [(2,3), (3, 4), (4, 5), (5, 6), (6, 8), (7, 10), (8, 11), (9, 12)]
-    for (row, col) in tailles:
-        if row*col >= size:
-            return (row, col)
 
-def evaluation(individual, G, col):
+
+def evaluation(individual, G, grid):
     asList = list(individual)
     score = 0
     for (a,b) in G.edges:
-        score -= distance(asList.index(a), asList.index(b), col)
+        score -= grid.distance(asList.index(a), asList.index(b))*10
+
+    # TODO compute if sources are at the top
+    sources = compute_sources(G)
+    for source in sources:
+        row = grid.rowFor(asList.index(source))
+        if row != 0:
+            score -= row * 0.1
     return score
 
-def hill_climb(strings, G, col, evaluationFunction):
+def hill_climb(strings, G, grid, evaluationFunction):
     evaluated = []
     perm = permutations(strings)
     population = []
@@ -292,7 +318,7 @@ def hill_climb(strings, G, col, evaluationFunction):
         counter += 1
         evaluated = {}
         for individual in population:
-            score = evaluationFunction(individual, G, col)
+            score = evaluationFunction(individual, G, grid)
             if score > bestScore or score == 0:
                 bestScore = score
                 bestIndividual = individual
@@ -330,13 +356,14 @@ def yaml_to_svgs(data):
     config = read_config_from_yaml(data)
     #print("Config: " + str(config.blackAndWhite) + " " + str(config.withTickBox))
     G = get_graph_from_data(data)
-    sources = compute_sources(G)
+    # sources = compute_sources(G)
     strings = []
     for node in G:
         strings.append(node)
     # compute the best combo sizes for the number of skills
-    (row, col) = bestCount(len(strings))
+    (row, col) = HexGrid.bestCount(len(strings))
     contentSize = row * col
+    grid = HexGrid(50, row, col)
     # pad the grid with placeholders for empty hexagons
     for i in range(0, contentSize - len(strings)):
         strings.append("___")
@@ -344,11 +371,11 @@ def yaml_to_svgs(data):
     prep_results_folder()
     results = []
     for round in range(1, 10):
-        bestScore, bestIndividual = hill_climb(strings, G, col, evaluation)
+        bestScore, bestIndividual = hill_climb(strings, G, grid, evaluation)
         print("best score " + str(bestScore))
         # print("best individual " + str(bestIndividual))
-        if bestScore == 0:
-            svg = draw_skill_tree(50, bestIndividual, G, row, col, config)
+        if bestScore > -10:
+            svg = draw_skill_tree(bestIndividual, G, grid, config)
             results.append(svg)
     return results
 
