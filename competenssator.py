@@ -5,27 +5,32 @@ import shutil
 from datetime import datetime
 from svglib.svglib import svg2rlg
 from reportlab.graphics import renderPDF
-from enum import Enum
 
 import networkx as nx
 import svgwrite
 import yaml
 from itertools import permutations
 
-# TODO https://docs.render.com/docs/deploy-flask
+# TODO throw exceptions if config is not there
+# TODO throw exceptions if in/out degree of one particular node is too high > 6
+# TODO throw exceptions if there are cycles
+# TODO throw exception if there is no graph with all adjacent edges
+# TODO add patterns to black and white styles and gradients :: polka, white, grey, black,
 
 # add a color or black and white setting
 backgroundColor = "rgb(255,255,255)"
 lightColor = "rgb(230,230,230)"
 darkColor = "rgb(10,10,10)"
 
+polkaUrl = ""
+gradientUrl = ""
+
 class Style:
-    def __init__(self, stroke, stroke_width, inverted=False):
-        self.stroke = stroke
-        self.color = "white"
-        self.inverted = inverted
-        self.stroke_width = stroke_width
-        self.stroke_dasharray = 5
+    def __init__(self, strokeColor, fillColor, fillUrl=""):
+        self.strokeColor = strokeColor
+        self.fillColor = fillColor
+        self.fillUrl = fillUrl
+        self.stroke_dasharray = 1
         self.number_of_strokes = 1
 
 class Config:
@@ -106,14 +111,22 @@ def split_string_by_length(text, max_length):
 def styles(config):
     styles = []
     if config.blackAndWhite:
-        for width in range(1,4):
+        styles.append(Style(darkColor, lightColor))
+        styles.append(Style(lightColor, darkColor))
+        styles.append(Style(darkColor, "#eee", polkaUrl))
+        styles.append(Style(darkColor, "#fff", gradientUrl))
+        styles.append(Style(darkColor, "#aaa"))
+        styles.append(Style(lightColor, "#444"))
+
+        # black on white, white on black, white on darkgrey, black on lightgrey, polka dots, gradient
+        for width in range(2,4):
             for inverted in [True, False]:
                 for dashy in [1, 5, 10]:
-                    style = Style( "black", width, inverted)
+                    style = Style( "black", "white" )
                     style.stroke_dasharray = dashy
                     style.number_of_strokes = width
-                    style.color = darkColor if inverted else lightColor
-                    style.stroke = lightColor if inverted else darkColor
+                    style.fillColor = darkColor if inverted else lightColor
+                    style.strokeColor = lightColor if inverted else darkColor
                     if width != 1 and dashy != 1:
                         continue
                     styles.append(style)
@@ -121,11 +134,11 @@ def styles(config):
         colors = ["aquamarine", "lightblue", "lightgreen", "tomato", "lightyellow", "lightpink", "lightgrey"]
         for width in range(1,4):
             for color in colors:
-                style = Style( "black", width, False)
+                style = Style( "black", "white")
                 style.stroke_dasharray = 1
                 style.number_of_strokes = 1
                 style.stroke = darkColor
-                style.color = color
+                style.fillColor = color
                 styles.append(style)
     return styles
 
@@ -134,17 +147,13 @@ def styleFor(element, parts, config):
     indexOfPart = find_part_containing(element, parts)
     return toutes[indexOfPart % len(toutes)]
 
-
-
 def draw_hexagon(dwg, center_x, center_y, grid, text, style, config):
     if text == "___":
         return
     stroke_width = 3
     number_of_strokes = style.number_of_strokes
-    perimeters = [1.0, 0.95, .9, .85, .8, .75]
+    perimeters = [1.0, .85, .7]
     perimeters = perimeters[0:number_of_strokes]
-    fillColor = style.color
-    strokeColor = style.stroke
     # for the checkbox
     xBox, yBox = (0, 0)
     for perimeter in perimeters:
@@ -172,11 +181,16 @@ def draw_hexagon(dwg, center_x, center_y, grid, text, style, config):
             path += " Q " + str(x2) + "," + str(y2) + " " + str(x23) + "," + str(y23)
         path += " Z"
         if (style.stroke_dasharray == 1):
-            dwg.add(dwg.path(d=path, fill=fillColor, stroke=strokeColor,
+            print(style.fillColor, style.strokeColor, "<",style.fillUrl,">")
+            dwg.add(dwg.path(d=path,
+                             fill=style.fillColor if style.fillUrl == "" else style.fillUrl,
+                             stroke=style.strokeColor,
                              stroke_width=stroke_width / number_of_strokes,
                              stroke_linecap="round"))
         else:
-            dwg.add(dwg.path(d=path, fill=fillColor, stroke=strokeColor,
+            dwg.add(dwg.path(d=path,
+                             fill=style.fillColor if style.fillUrl == "" else style.fillUrl,
+                             stroke=style.strokeColor,
                          stroke_width=stroke_width/number_of_strokes,
                          stroke_dasharray=str(style.stroke_dasharray)+","+str(style.stroke_dasharray),
                          stroke_linecap="round"))
@@ -193,14 +207,19 @@ def draw_hexagon(dwg, center_x, center_y, grid, text, style, config):
         dwg.add(dwg.polygon(points2, fill=darkColor))
         dwg.add(dwg.polygon(points, fill='white'))
     lines = split_string_by_length(text, 13)
+    # define a style for outlined text
+    # strokeColor = "#eee"
+    # fillColor = "#333"
+    style = "font-family:Rockwell;font-weight:bold;stroke-width:" + str(grid.size * 0.01) + ";stroke:"+style.fillColor+";font-size:" + str(grid.size * 0.17) + ";text-anchor:middle;fill:" + style.strokeColor + ";"
     for i, line in enumerate(lines):
         lineheight = grid.size/4
         text_element = dwg.text(line,
                                 insert=(center_x, center_y-grid.size/3+lineheight*i),
-                                fill=strokeColor,
-                                font_family="Arial",
-                                font_size=grid.size * 0.17,
-                                text_anchor='middle',
+                                #fill=strokeColor,
+                                #font_family="Arial",
+                                #font_size=grid.size * 0.17,
+                                style=style,
+                                #text_anchor='middle',
                                 transform="rotate(-30, " + str(center_x) + ", " + str(center_y) + ")")
         #text_element.add(dwg.tspan(line, dx=[0], dy=[(10*i)] ))
         dwg.add(text_element)
@@ -216,17 +235,32 @@ def find_part_containing(element, parts):
 
 
 def draw_skill_tree(skills, G, grid, config):
+    global polkaUrl, gradientUrl
     file_name = "results/" + str(datetime.now()) + ".svg"
     dwg = svgwrite.Drawing(
         filename=file_name,
         profile='full',
         size=(str(grid.size * (2*grid.colCount+ 1) ), str(grid.size * (2*grid.rowCount+.5))))
+    # create a radial gradient from white to dark grey
+    radial = dwg.defs.add(dwg.radialGradient((0.5, 0.5), r=.6, fx=0.5, fy=0.5))
+    radial.add_stop_color(offset='0%', color='#000')
+    radial.add_stop_color(offset='100%', color='#fff')
+
+    # add a polka dot background
+    polka = dwg.defs.add(dwg.pattern(id="polka", size=(10, 10), patternUnits="userSpaceOnUse", patternTransform="rotate(30)"))
+    polka.add(dwg.circle(center=(5, 5), r=2, fill='#aaa'))
+    polkaUrl = polka.get_funciri()
+    gradientUrl = radial.get_funciri()
     dwg.add(
         dwg.rect(
             insert=(0, 0),
             size=('100%', '100%'),
             rx=None, ry=None,
-            fill=backgroundColor))
+            fill="white"
+        )
+    )
+
+
     parts = list(nx.connected_components(G.to_undirected()))
     for element in skills:
         # find the part containing the skill named element
@@ -297,7 +331,8 @@ def evaluation(individual, G, grid):
             score -= row * 0.1
     return score
 
-def hill_climb(strings, G, grid, evaluationFunction):
+def hill_climb(strings, G, grid, evaluationFunction, seed):
+    random.seed(seed)
     evaluated = []
     perm = permutations(strings)
     population = []
@@ -371,7 +406,7 @@ def yaml_to_svgs(data):
     prep_results_folder()
     results = []
     for round in range(1, 10):
-        bestScore, bestIndividual = hill_climb(strings, G, grid, evaluation)
+        bestScore, bestIndividual = hill_climb(strings, G, grid, evaluation, round)
         print("best score " + str(bestScore))
         # print("best individual " + str(bestIndividual))
         if bestScore > -10:
