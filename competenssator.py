@@ -206,22 +206,33 @@ def draw_hexagon(dwg, center_x, center_y, grid, text, style, config):
             # dwg.add(dwg.circle(center=(x, y), r=2, fill='red'))
         dwg.add(dwg.polygon(points2, fill=darkColor))
         dwg.add(dwg.polygon(points, fill='white'))
+    draw_text_multiline(center_x, center_y, dwg, grid, style, text)
+
+
+def draw_text_multiline(center_x, center_y, dwg, grid, style, text):
     lines = split_string_by_length(text, 13)
     # define a style for outlined text
     # strokeColor = "#eee"
     # fillColor = "#333"
-    style = "font-family:Rockwell;font-weight:bold;stroke-width:" + str(grid.size * 0.01) + ";stroke:"+style.fillColor+";font-size:" + str(grid.size * 0.17) + ";text-anchor:middle;fill:" + style.strokeColor + ";"
+    baseStyle = "font-family:Arial Black,Verdana,Arial;font-weight:900;stroke-width:"
+    styleSVG = baseStyle + str(
+        grid.size * 0.009) + ";stroke:" + style.fillColor + ";font-size:" + str(
+        grid.size * 0.17) + ";text-anchor:middle;"
+    style2SVG = (baseStyle + str(grid.size * 0.03) +
+                 ";stroke:" + style.strokeColor + ";font-size:" + str(grid.size * 0.17) + ";text-anchor:middle;")
     for i, line in enumerate(lines):
-        lineheight = grid.size/4
+        lineheight = grid.size / 4
+
         text_element = dwg.text(line,
-                                insert=(center_x, center_y-grid.size/3+lineheight*i),
-                                #fill=strokeColor,
-                                #font_family="Arial",
-                                #font_size=grid.size * 0.17,
-                                style=style,
-                                #text_anchor='middle',
+                                insert=(center_x, center_y - grid.size / 3 + lineheight * i),
+                                style=style2SVG,
                                 transform="rotate(-30, " + str(center_x) + ", " + str(center_y) + ")")
-        #text_element.add(dwg.tspan(line, dx=[0], dy=[(10*i)] ))
+        # text_element.add(dwg.tspan(line, dx=[0], dy=[(10*i)] ))
+        dwg.add(text_element)
+        text_element = dwg.text(line,
+                                insert=(center_x, center_y - grid.size / 3 + lineheight * i),
+                                style=styleSVG,
+                                transform="rotate(-30, " + str(center_x) + ", " + str(center_y) + ")")
         dwg.add(text_element)
 
 
