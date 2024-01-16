@@ -219,7 +219,7 @@ def draw_text_multiline(center_x, center_y, dwg, grid, style, text):
     # strokeColor = style.strokeColor
     # fillColor = style.fillColor
     baseStyle = "font-family:Arial;"+"font-weight:700;font-size:" + str(grid.size * 0.17) + ";"+"text-anchor:middle;"
-    styleSVG = baseStyle + "stroke-width:" +str(grid.size * 0.006) + ";"+"stroke:" + fillColor + ";fill:" + fillColor + ";"
+    styleSVG = baseStyle + "stroke-width:" +str(grid.size * 0.007) + ";"+"stroke:" + fillColor + ";fill:" + fillColor + ";"
     style2SVG = baseStyle +"stroke-width:" + str(grid.size * 0.04) +";stroke:" + strokeColor + ";fill:" + strokeColor + ";"
     print(styleSVG)
     print('222 ',style2SVG)
