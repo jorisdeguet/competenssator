@@ -23,6 +23,7 @@ lightColor = "rgb(230,230,230)"
 darkColor = "rgb(10,10,10)"
 
 polkaUrl = ""
+polka2Url = ""
 gradientUrl = ""
 
 class Style:
@@ -114,9 +115,10 @@ def styles(config):
         styles.append(Style(darkColor, lightColor))
         styles.append(Style(lightColor, darkColor))
         styles.append(Style(darkColor, "#eee", polkaUrl))
-        styles.append(Style(darkColor, "#fff", gradientUrl))
         styles.append(Style(darkColor, "#aaa"))
         styles.append(Style(lightColor, "#444"))
+        styles.append(Style(darkColor, "#eee", polka2Url))
+        styles.append(Style(darkColor, "#fff", gradientUrl))
 
         # black on white, white on black, white on darkgrey, black on lightgrey, polka dots, gradient
         for width in range(2,4):
@@ -212,17 +214,17 @@ def draw_hexagon(dwg, center_x, center_y, grid, text, style, config):
 def draw_text_multiline(center_x, center_y, dwg, grid, style, text):
     lines = split_string_by_length(text, 13)
     # define a style for outlined text
-    # strokeColor = "#eee"
-    # fillColor = "#333"
-    baseStyle = "font-family:Arial Black,Verdana,Arial;font-weight:900;stroke-width:"
-    styleSVG = baseStyle + str(
-        grid.size * 0.009) + ";stroke:" + style.fillColor + ";font-size:" + str(
-        grid.size * 0.17) + ";text-anchor:middle;"
-    style2SVG = (baseStyle + str(grid.size * 0.03) +
-                 ";stroke:" + style.strokeColor + ";font-size:" + str(grid.size * 0.17) + ";text-anchor:middle;")
+    strokeColor = "#fff"
+    fillColor = "#000"
+    # strokeColor = style.strokeColor
+    # fillColor = style.fillColor
+    baseStyle = "font-family:Arial;"+"font-weight:700;font-size:" + str(grid.size * 0.17) + ";"+"text-anchor:middle;"
+    styleSVG = baseStyle + "stroke-width:" +str(grid.size * 0.006) + ";"+"stroke:" + fillColor + ";fill:" + fillColor + ";"
+    style2SVG = baseStyle +"stroke-width:" + str(grid.size * 0.04) +";stroke:" + strokeColor + ";fill:" + strokeColor + ";"
+    print(styleSVG)
+    print('222 ',style2SVG)
     for i, line in enumerate(lines):
         lineheight = grid.size / 4
-
         text_element = dwg.text(line,
                                 insert=(center_x, center_y - grid.size / 3 + lineheight * i),
                                 style=style2SVG,
@@ -246,7 +248,7 @@ def find_part_containing(element, parts):
 
 
 def draw_skill_tree(skills, G, grid, config):
-    global polkaUrl, gradientUrl
+    global polkaUrl, polka2Url, gradientUrl
     file_name = "results/" + str(datetime.now()) + ".svg"
     dwg = svgwrite.Drawing(
         filename=file_name,
@@ -259,8 +261,14 @@ def draw_skill_tree(skills, G, grid, config):
 
     # add a polka dot background
     polka = dwg.defs.add(dwg.pattern(id="polka", size=(10, 10), patternUnits="userSpaceOnUse", patternTransform="rotate(30)"))
-    polka.add(dwg.circle(center=(5, 5), r=2, fill='#aaa'))
+    polka.add(dwg.circle(center=(5, 5), r=1, fill='#999'))
     polkaUrl = polka.get_funciri()
+
+    polka2 = dwg.defs.add(
+        dwg.pattern(id="polka2", size=(2, 8), patternUnits="userSpaceOnUse", patternTransform="rotate(150)"))
+    polka2.add(dwg.circle(center=(1, 1), r=.5, fill='#666'))
+    polka2Url = polka2.get_funciri()
+
     gradientUrl = radial.get_funciri()
     dwg.add(
         dwg.rect(
