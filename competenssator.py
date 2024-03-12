@@ -183,7 +183,7 @@ def draw_hexagon(dwg, center_x, center_y, grid, text, style, config):
             path += " Q " + str(x2) + "," + str(y2) + " " + str(x23) + "," + str(y23)
         path += " Z"
         if (style.stroke_dasharray == 1):
-            print(style.fillColor, style.strokeColor, "<",style.fillUrl,">")
+            #print(style.fillColor, style.strokeColor, "<",style.fillUrl,">")
             dwg.add(dwg.path(d=path,
                              fill=style.fillColor if style.fillUrl == "" else style.fillUrl,
                              stroke=style.strokeColor,
