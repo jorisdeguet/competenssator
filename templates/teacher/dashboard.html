@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Tableau de bord — Competenssator{% endblock %}
+
+{% block content %}
+<div class="level mb-5">
+  <div class="level-left">
+    <div>
+      <h1 class="title is-2">👩‍🏫 Mes classes</h1>
+      <p class="subtitle has-text-grey">Bonjour, {{ session.user_name }} !</p>
+    </div>
+  </div>
+  <div class="level-right">
+    <a class="button is-link is-medium" href="{{ url_for('teacher_class_new') }}">
+      + Nouvelle classe
+    </a>
+  </div>
+</div>
+
+{% if class_info %}
+<div class="columns is-multiline">
+  {% for item in class_info %}
+  <div class="column is-4">
+    <div class="card" style="border-radius:12px; border-top: 4px solid #4a90d9; height:100%;">
+      <div class="card-content">
+        <h2 class="title is-4 mb-1">{{ item.cls.name }}</h2>
+        <p class="has-text-grey mb-3" style="font-size:.85rem;">
+          Créée le {{ item.cls.created_at.strftime('%d/%m/%Y') }}
+        </p>
+        <div class="tags">
+          <span class="tag is-light">👤 {{ item.students }} élève{{ 's' if item.students != 1 }}</span>
+          {% if item.pending > 0 %}
+          <span class="tag is-warning">⏳ {{ item.pending }} en attente</span>
+          {% else %}
+          <span class="tag is-success is-light">✓ Rien à valider</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="card-footer">
+        <a class="card-footer-item" href="{{ url_for('teacher_class_detail', class_id=item.cls.id) }}">
+          Gérer →
+        </a>
+        <a class="card-footer-item has-text-grey" href="{{ url_for('teacher_class_edit', class_id=item.cls.id) }}">
+          Modifier
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="has-text-centered" style="padding: 4rem 0;">
+  <p style="font-size:4rem;">⬡</p>
+  <h2 class="title is-4 has-text-grey">Aucune classe pour l'instant</h2>
+  <p class="has-text-grey mb-4">Créez votre première classe avec un arbre de compétences !</p>
+  <a class="button is-link is-medium" href="{{ url_for('teacher_class_new') }}">Créer une classe</a>
+</div>
+{% endif %}
+{% endblock %}

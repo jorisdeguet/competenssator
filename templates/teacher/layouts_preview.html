@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Choisir la mise en page — {{ cls.name }}{% endblock %}
+
+{% block content %}
+<div class="level mb-4">
+  <div class="level-left">
+    <div>
+      <h1 class="title is-3">🗺️ Choisir la mise en page</h1>
+      <p class="subtitle has-text-grey">{{ cls.name }}</p>
+    </div>
+  </div>
+  <div class="level-right">
+    {% if cls.skill_order %}
+    <a class="button is-light" href="{{ url_for('teacher_class_detail', class_id=cls.id) }}">
+      ← Annuler
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<p class="mb-5 has-text-grey">
+  Trois dispositions ont été calculées. Les compétences reliées sont placées le plus souvent
+  voisines, et les compétences avec beaucoup de liens tendent vers le centre.
+  Choisissez celle qui vous convient.
+</p>
+
+{% for opt in options %}
+<div class="box mb-5" style="border-left:4px solid
+  {% if loop.index == 1 %}#4a90d9{% elif loop.index == 2 %}#4CAF50{% else %}#FFD700{% endif %};">
+
+  <div class="columns is-vcentered is-variable is-5">
+
+    <!-- SVG thumbnail (left, 60%) -->
+    <div class="column is-7">
+      <div style="border:1px solid #eee; border-radius:6px; overflow:hidden;">
+        {{ opt.svg | safe }}
+      </div>
+    </div>
+
+    <!-- Info + button (right, 40%) -->
+    <div class="column is-5 has-text-centered-mobile">
+      <p class="heading mb-1">Option {{ loop.index }}</p>
+      <p class="title is-4 mb-1">{{ opt.label }}</p>
+      <p class="has-text-grey mb-4" style="font-size:.9rem;">
+        {{ opt.rows }} rangée{{ 's' if opt.rows != 1 }} ×
+        {{ opt.cols }} colonne{{ 's' if opt.cols != 1 }}
+      </p>
+
+      <form method="POST" action="{{ url_for('teacher_class_choose_layout', class_id=cls.id) }}">
+        <input type="hidden" name="order_json" value="{{ opt.order | tojson }}">
+        <input type="hidden" name="rows" value="{{ opt.rows }}">
+        <input type="hidden" name="cols" value="{{ opt.cols }}">
+        <button class="button is-link is-medium is-fullwidth" type="submit">
+          Choisir cette mise en page
+        </button>
+      </form>
+    </div>
+
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

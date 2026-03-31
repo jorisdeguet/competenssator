@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Compte créé — {{ student.display_name }}{% endblock %}
+
+{% block content %}
+<section class="hero is-game is-small" style="border-radius:12px; overflow:hidden; margin:-1rem 0 2rem;">
+  <div class="hero-body has-text-centered">
+    <p style="font-size:2.5rem;">🎉</p>
+    <h1 class="title" style="color:#FFD700;">Compte créé, {{ student.display_name }} !</h1>
+    <p class="subtitle" style="color:#aac4e0;">Tu es inscrit(e) dans le groupe {{ group.name }}</p>
+  </div>
+</section>
+
+<div style="max-width:420px; margin:0 auto;">
+  <div class="box has-text-centered">
+    <p class="heading mb-2">Ton code de connexion personnel</p>
+    <p class="title is-1 has-text-link mb-2"
+       style="letter-spacing:4px; font-family:monospace;">{{ personal_code }}</p>
+
+    <img src="data:image/png;base64,{{ qr_data }}" alt="QR code"
+         style="width:160px; height:160px; margin:1rem auto; display:block;">
+
+    <div class="notification is-warning is-light mt-3">
+      ⚠️ <strong>Note ce code quelque part ou prends une photo du QR !</strong><br>
+      C'est le seul moyen de te reconnecter. Il n'y a pas de mot de passe.
+    </div>
+  </div>
+
+  <div class="buttons is-centered mt-4">
+    <a class="button is-danger is-medium"
+       href="{{ url_for('login') }}">
+      Se connecter maintenant →
+    </a>
+    <button class="button is-light" onclick="window.print()">🖨️ Imprimer</button>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}{{ group.name }} — {{ cls.name }}{% endblock %}
+
+{% block content %}
+<div class="level mb-4">
+  <div class="level-left">
+    <div>
+      <h1 class="title is-3">{{ group.name }}</h1>
+      <a class="has-text-grey" href="{{ url_for('teacher_class_detail', class_id=cls.id) }}">
+        ← {{ cls.name }}
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="columns is-variable is-5">
+  <!-- Invite code + QR -->
+  <div class="column is-4">
+    <div class="box has-text-centered">
+      <p class="heading mb-2">Code d'invitation du groupe</p>
+      <p class="title is-1 has-text-link" style="letter-spacing:4px; font-family:monospace;">
+        {{ group.invite_code }}
+      </p>
+      <img src="data:image/png;base64,{{ qr_data }}" alt="QR code" style="width:150px; height:150px; margin:1rem auto; display:block;">
+      <p class="has-text-grey" style="font-size:.8rem; word-break:break-all;">
+        Lien direct : <a href="{{ join_url }}">{{ join_url }}</a>
+      </p>
+      <p class="mt-3 has-text-grey" style="font-size:.8rem;">
+        Partagez ce code ou ce QR avec les élèves pour qu'ils rejoignent ce groupe.
+      </p>
+    </div>
+  </div>
+
+  <!-- Students + Bulk add -->
+  <div class="column is-8">
+
+    <!-- Bulk add -->
+    <div class="box mb-4">
+      <h2 class="title is-5">➕ Ajouter des élèves en masse</h2>
+      <p class="has-text-grey mb-3" style="font-size:.85rem;">
+        Entrez un prénom par ligne. Un code personnel sera généré pour chaque élève.
+      </p>
+      <form method="POST" action="{{ url_for('teacher_group_bulk_add', class_id=cls.id, group_id=group.id) }}">
+        <div class="field">
+          <div class="control">
+            <textarea class="textarea" name="names" rows="6"
+                      placeholder="Alice&#10;Bob&#10;Charlie" required></textarea>
+          </div>
+        </div>
+        <button class="button is-link" type="submit">Créer les comptes</button>
+      </form>
+    </div>
+
+    <!-- Student list -->
+    <div class="box">
+      <h2 class="title is-5">👤 Élèves inscrits
+        <span class="tag is-light ml-2">{{ students|length }}</span>
+      </h2>
+      {% if students %}
+      <table class="table is-fullwidth is-striped is-hoverable">
+        <thead>
+          <tr><th>Nom</th><th>Code</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for student in students %}
+          <tr>
+            <td>{{ student.display_name }}</td>
+            <td><code>{{ student.code }}</code></td>
+            <td>
+              <a class="button is-small is-light"
+                 href="{{ url_for('teacher_student_code', class_id=cls.id, group_id=group.id, student_id=student.id) }}">
+                🔑 Fiche
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <p class="has-text-grey">Aucun élève dans ce groupe pour l'instant.</p>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

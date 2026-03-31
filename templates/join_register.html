@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Rejoindre — {{ group.cls.name }}{% endblock %}
+
+{% block content %}
+<section class="hero is-game is-small" style="border-radius:12px; overflow:hidden; margin:-1rem 0 2rem;">
+  <div class="hero-body has-text-centered">
+    <h1 class="title" style="color:#FFD700;">
+      Groupe <em>{{ group.name }}</em>
+    </h1>
+    <p class="subtitle" style="color:#aac4e0;">{{ group.cls.name }}</p>
+  </div>
+</section>
+
+<div style="max-width:560px; margin:0 auto;">
+
+  <!-- New student -->
+  <div class="box mb-4" style="border-left:4px solid #4CAF50;">
+    <h2 class="title is-5 mb-3">🎮 Nouveau ? Crée ton compte</h2>
+    <form method="POST">
+      <input type="hidden" name="action" value="new">
+      <div class="field">
+        <label class="label">Ton prénom</label>
+        <div class="control">
+          <input class="input" type="text" name="name"
+                 placeholder="Ex : Alice" autofocus>
+        </div>
+      </div>
+      <button class="button is-success is-fullwidth mt-3" type="submit">
+        Créer mon compte et rejoindre →
+      </button>
+    </form>
+  </div>
+
+  <!-- Existing student -->
+  <div class="box" style="border-left:4px solid #4a90d9;">
+    <h2 class="title is-5 mb-3">🔑 Tu as déjà un compte ?</h2>
+    <p class="has-text-grey mb-3" style="font-size:.85rem;">
+      Entre ton code personnel de 8 caractères pour te connecter et rejoindre ce groupe.
+    </p>
+    <form method="POST">
+      <input type="hidden" name="action" value="existing">
+      <div class="field">
+        <label class="label">Ton code personnel</label>
+        <div class="control">
+          <input class="input" type="text" name="personal_code"
+                 maxlength="8"
+                 style="font-family:monospace; letter-spacing:3px; text-transform:uppercase; font-size:1.1rem;"
+                 placeholder="XXXXXXXX"
+                 oninput="this.value=this.value.toUpperCase()">
+        </div>
+      </div>
+      <button class="button is-link is-fullwidth mt-3" type="submit">
+        Me connecter et rejoindre →
+      </button>
+    </form>
+  </div>
+
+  <p class="has-text-centered has-text-grey mt-4">
+    <a href="{{ url_for('join') }}">← Changer de code d'invitation</a>
+  </p>
+</div>
+{% endblock %}

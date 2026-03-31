@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Competenssator{% endblock %}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.4/css/bulma.min.css">
+  <style>
+    :root {
+      --color-locked:    #cccccc;
+      --color-available: #ddeeff;
+      --color-claimed:   #FFD700;
+      --color-validated: #4CAF50;
+      --color-rejected:  #FF6B6B;
+    }
+    body { background: #f5f7fa; min-height: 100vh; }
+    .navbar { background: #1a1a2e !important; }
+    .navbar-brand .navbar-item { color: #e94560 !important; font-weight: 800; font-size: 1.2rem; letter-spacing: 1px; }
+    .navbar .navbar-item, .navbar .navbar-link { color: #ccc !important; }
+    .navbar .navbar-item:hover { color: #fff !important; background: transparent !important; }
+    .hero.is-game { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); }
+    .hex-group { transition: opacity .15s; }
+    .hex-group[data-state="available"], .hex-group[data-state="rejected"] { cursor: pointer; }
+    .hex-group[data-state="available"]:hover, .hex-group[data-state="rejected"]:hover { opacity: .8; }
+    .skill-legend { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+    .legend-item { display: flex; align-items: center; gap: .35rem; font-size: .8rem; }
+    .legend-dot { width: 16px; height: 16px; border-radius: 3px; border: 2px solid rgba(0,0,0,.2); flex-shrink: 0; }
+    .progress-label { font-weight: 700; font-size: 1.1rem; }
+    .code-display { font-family: monospace; font-size: 2.5rem; font-weight: 900; letter-spacing: 8px;
+                    background: #1a1a2e; color: #FFD700; padding: .5rem 1.5rem; border-radius: 8px;
+                    display: inline-block; }
+    .card-level { font-size: .75rem; font-weight: 700; }
+    .svg-wrapper { overflow-x: auto; border: 1px solid #ddd; border-radius: 8px;
+                   background: #fff; padding: .5rem; }
+    .svg-wrapper svg { max-width: 100%; height: auto; }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<nav class="navbar" role="navigation">
+  <div class="container">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="/">⬡ Competenssator</a>
+    </div>
+    <div class="navbar-end">
+      {% if session.get('user_name') %}
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" style="color:#ccc !important;">
+            {{ session.user_name }}
+            {% if session.user_role == 'teacher' %}👩‍🏫{% else %}🎮{% endif %}
+          </a>
+          <div class="navbar-dropdown is-right" style="background:#16213e;">
+            {% if session.user_role == 'teacher' %}
+              <a class="navbar-item" href="{{ url_for('teacher_dashboard') }}" style="color:#ccc!important;">Tableau de bord</a>
+            {% else %}
+              <a class="navbar-item" href="{{ url_for('student_dashboard') }}" style="color:#ccc!important;">Mes classes</a>
+            {% endif %}
+            <hr class="navbar-divider">
+            <a class="navbar-item" href="{{ url_for('logout') }}" style="color:#e94560!important;">Déconnexion</a>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+<section class="section">
+  <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="notification is-{{ 'danger' if category == 'danger' else ('warning' if category == 'warning' else ('info' if category == 'info' else 'success')) }} is-light mb-3" style="position:relative;">
+          <button class="delete" onclick="this.parentElement.remove()"></button>
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </div>
+</section>
+
+</body>
+</html>

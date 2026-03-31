@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}{{ cls.name }} — Enseignant{% endblock %}
+
+{% block content %}
+<div class="level mb-3">
+  <div class="level-left">
+    <div>
+      <h1 class="title is-3">{{ cls.name }}</h1>
+      <a class="has-text-grey" href="{{ url_for('teacher_dashboard') }}">← Tableau de bord</a>
+    </div>
+  </div>
+  <div class="level-right">
+    <div class="buttons">
+      <a class="button is-light" href="{{ url_for('teacher_class_layouts', class_id=cls.id) }}">
+        🗺️ Changer la mise en page
+      </a>
+      <a class="button is-light" href="{{ url_for('teacher_class_edit', class_id=cls.id) }}">
+        ✏️ Modifier le YAML
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="columns is-variable is-5">
+
+  <!-- Left: SVG tree -->
+  <div class="column is-7">
+    <div class="box" style="padding:.75rem;">
+      <p class="heading mb-2">Aperçu de l'arbre</p>
+      <div class="svg-wrapper">
+        {{ svg | safe }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Validations + Groups -->
+  <div class="column is-5">
+
+    <!-- Pending validations -->
+    <div class="box mb-4">
+      <h2 class="title is-5">⏳ En attente de validation
+        {% if pending_claims %}
+        <span class="tag is-warning ml-2">{{ pending_claims|length }}</span>
+        {% endif %}
+      </h2>
+
+      {% if pending_claims %}
+        {% for claim in pending_claims %}
+        <div class="card mb-2" style="border-left:4px solid #FFD700; border-radius:6px;">
+          <div class="card-content" style="padding:.75rem 1rem;">
+            <p class="mb-1">
+              <strong>{{ claim.student.display_name }}</strong>
+              <span class="has-text-grey"> → </span>
+              <span>{{ claim.skill_name }}</span>
+            </p>
+            <p class="has-text-grey" style="font-size:.75rem;">
+              Soumis le {{ claim.claimed_at.strftime('%d/%m/%Y à %H:%M') }}
+            </p>
+            <form method="POST" action="{{ url_for('teacher_validate') }}" class="mt-2">
+              <input type="hidden" name="claim_id" value="{{ claim.id }}">
+              <div class="field mb-1">
+                <input class="input is-small" type="text" name="note"
+                       placeholder="Note (optionnel)" style="width:170px;">
+              </div>
+              <div class="buttons are-small">
+                <button class="button is-success is-small" type="submit" name="action" value="validate">
+                  ✓ Valider
+                </button>
+                <button class="button is-danger is-light is-small" type="submit" name="action" value="reject">
+                  ✗ Refuser
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p class="has-text-grey">Aucune compétence en attente de validation.</p>
+      {% endif %}
+    </div>
+
+    <!-- Groups -->
+    <div class="box">
+      <div class="level mb-3">
+        <div class="level-left">
+          <h2 class="title is-5 mb-0">👥 Groupes
+            <span class="tag is-light ml-2">{{ cls.groups|length }}</span>
+          </h2>
+        </div>
+      </div>
+
+      {% for group in cls.groups %}
+      <div class="card mb-3" style="border-left:4px solid #4a90d9; border-radius:6px;">
+        <div class="card-content" style="padding:.75rem 1rem;">
+          <div class="level mb-1">
+            <div class="level-left">
+              <strong>{{ group.name }}</strong>
+            </div>
+            <div class="level-right">
+              <span class="tag is-light">{{ group.enrollments|length }} élève{{ 's' if group.enrollments|length != 1 }}</span>
+            </div>
+          </div>
+          <p class="has-text-grey" style="font-size:.8rem;">
+            Code d'invitation : <code>{{ group.invite_code }}</code>
+          </p>
+          <a class="button is-small is-link is-light mt-2"
+             href="{{ url_for('teacher_group_detail', class_id=cls.id, group_id=group.id) }}">
+            Gérer ce groupe →
+          </a>
+        </div>
+      </div>
+      {% else %}
+        <p class="has-text-grey mb-3">Aucun groupe créé.</p>
+      {% endfor %}
+
+      <hr>
+      <p class="heading mb-2">Créer un groupe</p>
+      <form method="POST" action="{{ url_for('teacher_group_create', class_id=cls.id) }}">
+        <div class="field has-addons">
+          <div class="control is-expanded">
+            <input class="input" type="text" name="group_name"
+                   placeholder="Ex : Groupe A" required>
+          </div>
+          <div class="control">
+            <button class="button is-link" type="submit">Créer</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

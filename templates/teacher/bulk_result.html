@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Élèves créés — {{ group.name }}{% endblock %}
+
+{% block content %}
+<div class="level mb-4">
+  <div class="level-left">
+    <div>
+      <h1 class="title is-3">✅ Élèves créés</h1>
+      <a class="has-text-grey" href="{{ url_for('teacher_group_detail', class_id=cls.id, group_id=group.id) }}">
+        ← Retour au groupe {{ group.name }}
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="notification is-success is-light mb-4">
+  <strong>{{ created|length }} élève{{ 's' if created|length != 1 }}</strong> ajouté{{ 's' if created|length != 1 }}
+  au groupe <strong>{{ group.name }}</strong>.
+  Distribuez les codes ci-dessous à chaque élève.
+</div>
+
+<div class="box">
+  <table class="table is-fullwidth is-striped">
+    <thead>
+      <tr>
+        <th>Prénom</th>
+        <th>Code de connexion</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in created %}
+      <tr>
+        <td>{{ item.name }}</td>
+        <td>
+          <span class="tag is-link is-medium" style="font-family:monospace; letter-spacing:2px; font-size:1rem;">
+            {{ item.code }}
+          </span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="buttons mt-4">
+  <a class="button is-link" href="{{ url_for('teacher_group_detail', class_id=cls.id, group_id=group.id) }}">
+    ← Retour au groupe
+  </a>
+  <button class="button is-light" onclick="window.print()">🖨️ Imprimer</button>
+</div>
+{% endblock %}

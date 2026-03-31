@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}{{ cls.name }} — Mon arbre{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="level mb-3">
+  <div class="level-left">
+    <div>
+      <h1 class="title is-3 mb-1">{{ cls.name }}</h1>
+      <a class="has-text-grey" href="{{ url_for('student_dashboard') }}">← Mes classes</a>
+    </div>
+  </div>
+  <div class="level-right">
+    <span class="tag {{ level[1] }} is-medium" style="font-size:.9rem; padding:.5rem 1rem;">
+      {{ level[0] }}
+    </span>
+  </div>
+</div>
+
+<!-- Progress bar -->
+<div class="box mb-4" style="padding:1rem 1.25rem;">
+  <div class="level mb-2">
+    <div class="level-left">
+      <span class="progress-label">🏆 {{ validated_count }} / {{ total }} compétences validées</span>
+    </div>
+    <div class="level-right">
+      <span class="has-text-grey">{{ progress }}%</span>
+    </div>
+  </div>
+  <progress class="progress {{ 'is-success' if progress >= 66 else ('is-info' if progress >= 33 else 'is-warning') }}"
+            value="{{ progress }}" max="100">{{ progress }}%</progress>
+</div>
+
+<!-- Legend -->
+<div class="skill-legend mb-3">
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#cccccc; border-color:#999;"></div>
+    <span class="has-text-grey">Verrouillée</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#ddeeff; border-color:#4a90d9;"></div>
+    <span>Disponible <em>(clique pour déclarer !)</em></span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#FFD700; border-color:#b8860b;"></div>
+    <span>En attente de validation</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#4CAF50; border-color:#2E7D32;"></div>
+    <span>✓ Validée</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#FF6B6B; border-color:#b71c1c;"></div>
+    <span>Refusée <em>(clique pour re-soumettre)</em></span>
+  </div>
+</div>
+
+<!-- Skill tree SVG -->
+<div class="svg-wrapper mb-4">
+  {{ svg | safe }}
+</div>
+
+<!-- Claim info -->
+{% set pending = skill_states.values() | list | select('equalto', 'claimed') | list | length %}
+{% if pending > 0 %}
+<div class="notification is-warning is-light">
+  ⏳ Tu as {{ pending }} compétence{{ 's' if pending != 1 }} en attente de validation par ton enseignant.
+</div>
+{% endif %}
+
+<!-- Hidden form for claiming a skill -->
+<form id="claim-form" method="POST" action="{{ url_for('student_claim') }}" style="display:none;">
+  <input type="hidden" name="class_id" value="{{ cls.id }}">
+  <input type="hidden" name="skill_name" id="claim-skill-name" value="">
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.hex-group').forEach(function (group) {
+    var state = group.getAttribute('data-state');
+    group.style.cursor = (state === 'available' || state === 'rejected') ? 'pointer' : 'default';
+    if (state === 'locked') {
+      group.style.cursor = 'not-allowed';
+      group.style.opacity = '0.75';
+      group.setAttribute('title', 'Valide les compétences prérequises pour débloquer celle-ci');
+    }
+    if (state === 'available' || state === 'rejected') {
+      group.addEventListener('click', function () {
+        var skill = this.getAttribute('data-skill');
+        var msg = state === 'rejected'
+          ? 'Re-soumettre la compétence « ' + skill + ' » à validation ?'
+          : 'Déclarer la compétence « ' + skill + ' » comme acquise ?';
+        if (confirm(msg)) {
+          document.getElementById('claim-skill-name').value = skill;
+          document.getElementById('claim-form').submit();
+        }
+      });
+    }
+  });
+});
+</script>
+{% endblock %}

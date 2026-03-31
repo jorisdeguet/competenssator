@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Inscription enseignant — Competenssator{% endblock %}
+
+{% block content %}
+<div class="columns is-centered">
+  <div class="column is-6">
+
+    {% if done %}
+    <div class="card" style="border-radius:12px; border-top: 4px solid #4CAF50;">
+      <div class="card-content has-text-centered">
+        <p style="font-size:3rem;">🎉</p>
+        <h1 class="title is-3">Bienvenue, {{ name }} !</h1>
+        <p class="subtitle has-text-grey">Votre compte enseignant a été créé.</p>
+
+        <div class="notification is-warning" style="border-radius:8px;">
+          <strong>⚠️ Sauvegardez votre code maintenant !</strong><br>
+          Ce code est votre unique moyen de vous connecter. Notez-le ou imprimez le QR code ci-dessous.
+        </div>
+
+        <p class="mb-2 has-text-grey">Votre code de connexion :</p>
+        <div class="code-display mb-4">{{ code }}</div>
+
+        {% if qr_data %}
+        <p class="mb-2 has-text-grey">QR code (scan pour connexion rapide) :</p>
+        <div class="mb-4">
+          <img src="data:image/png;base64,{{ qr_data }}" alt="QR code {{ code }}"
+               style="max-width:200px; border:4px solid #1a1a2e; border-radius:8px;">
+        </div>
+        {% endif %}
+
+        <a class="button is-link is-medium" href="{{ url_for('login') }}">
+          Se connecter maintenant →
+        </a>
+      </div>
+    </div>
+
+    {% else %}
+    <div class="card" style="border-radius:12px; border-top: 4px solid #4a90d9;">
+      <div class="card-content">
+        <div class="has-text-centered mb-4">
+          <p style="font-size:3rem;">👩‍🏫</p>
+          <h1 class="title is-3">Créer un compte enseignant</h1>
+          <p class="has-text-grey">Un code unique vous sera généré — sauvegardez-le !</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('register_teacher') }}">
+          <div class="field">
+            <label class="label">Votre nom</label>
+            <div class="control">
+              <input class="input is-medium" type="text" name="name"
+                     placeholder="Ex : Mme Dupont" autofocus required>
+            </div>
+          </div>
+          <div class="field mt-4">
+            <div class="control">
+              <button class="button is-link is-fullwidth is-medium" type="submit">
+                Créer mon compte et obtenir mon code →
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <div class="has-text-centered mt-4">
+          <a class="has-text-grey" href="{{ url_for('index') }}">← Retour à l'accueil</a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}
