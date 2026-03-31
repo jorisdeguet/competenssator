@@ -394,11 +394,49 @@ def teacher_group_detail(class_id, group_id):
     cls, group = _get_teacher_group(class_id, group_id)
     enrollments = Enrollment.query.filter_by(group_id=group_id).all()
     students = [e.student for e in enrollments]
+    total = len(students)
+    student_ids = [s.id for s in students]
+
+    skill_stats = {}
+    svg = None
+    if cls.yaml_content:
+        try:
+            data = yaml.safe_load(cls.yaml_content)
+            G = cs.get_graph_from_data(data)
+            for skill in G.nodes:
+                if student_ids:
+                    validated = SkillClaim.query.filter(
+                        SkillClaim.student_id.in_(student_ids),
+                        SkillClaim.class_id == cls.id,
+                        SkillClaim.skill_name == skill,
+                        SkillClaim.status == 'validated'
+                    ).count()
+                    claimed = SkillClaim.query.filter(
+                        SkillClaim.student_id.in_(student_ids),
+                        SkillClaim.class_id == cls.id,
+                        SkillClaim.skill_name == skill,
+                        SkillClaim.status == 'claimed'
+                    ).count()
+                else:
+                    validated, claimed = 0, 0
+                skill_stats[skill] = {'validated': validated, 'claimed': claimed}
+
+            layout = json.loads(cls.skill_order) if cls.skill_order else None
+            if layout and isinstance(layout, list):
+                layout = {'order': layout, 'rows': None, 'cols': None}
+            if layout:
+                svg = cs.draw_with_group_stats(data, layout, skill_stats, total)
+            else:
+                svg = render_svg_for_class(cls)
+        except Exception as e:
+            svg = f'<p class="has-text-danger">Erreur SVG : {e}</p>'
+
     qr_data = make_qr_base64(group.invite_code)
     join_url = url_for('join_register', invite_code=group.invite_code, _external=True)
     return render_template('teacher/group_detail.html',
                            cls=cls, group=group, students=students,
-                           qr_data=qr_data, join_url=join_url)
+                           qr_data=qr_data, join_url=join_url,
+                           svg=svg, skill_stats=skill_stats, total=total)
 
 
 @app.route('/teacher/classes/<int:class_id>/groups/<int:group_id>/students/bulk', methods=['POST'])
@@ -573,6 +611,16 @@ def student_claim():
         flash(f'« {skill_name} » soumise ! En attente de validation. 🎯', 'success')
 
     return redirect(url_for('student_class_view', class_id=class_id))
+
+
+# ---------------------------------------------------------------------------
+# Visual skill-tree builder
+# ---------------------------------------------------------------------------
+
+@app.route('/teacher/classes/builder')
+@teacher_required
+def teacher_class_builder():
+    return render_template('teacher/class_builder.html')
 
 
 # ---------------------------------------------------------------------------

@@ -47,7 +47,7 @@
       </p>
 
       <form method="POST" action="{{ url_for('teacher_class_choose_layout', class_id=cls.id) }}">
-        <input type="hidden" name="order_json" value="{{ opt.order | tojson }}">
+        <input type="hidden" name="order_json" value='{{ opt.order | tojson }}'>
         <input type="hidden" name="rows" value="{{ opt.rows }}">
         <input type="hidden" name="cols" value="{{ opt.cols }}">
         <button class="button is-link is-medium is-fullwidth" type="submit">

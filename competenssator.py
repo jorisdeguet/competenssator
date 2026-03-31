@@ -19,20 +19,32 @@ polkaUrl = ""
 polka2Url = ""
 gradientUrl = ""
 
-# Skill state colours for the interactive student view
-STATE_FILLS = {
-    'locked':    '#cccccc',
-    'available': '#ddeeff',
-    'claimed':   '#FFD700',
-    'validated': '#4CAF50',
-    'rejected':  '#FF6B6B',
-}
+# Section colours (colourful, no B&W)
+SECTION_COLORS = [
+    ("black", "aquamarine"),
+    ("black", "lightblue"),
+    ("black", "lightgreen"),
+    ("black", "tomato"),
+    ("black", "lightyellow"),
+    ("black", "lightpink"),
+    ("black", "lightgrey"),
+    ("black", "peachpuff"),
+    ("black", "paleturquoise"),
+    ("black", "lavender"),
+]
+
+# State stroke colours used on top of section fills
 STATE_STROKES = {
-    'locked':    '#999999',
-    'available': '#4a90d9',
-    'claimed':   '#b8860b',
-    'validated': '#2E7D32',
-    'rejected':  '#b71c1c',
+    'locked':         '#999999',
+    'available':      None,          # inherits section stroke
+    'claimed':        '#b8860b',
+    'validated':      '#2E7D32',
+    'rejected':       '#c62828',
+    # teacher group-stats states
+    'all_validated':  '#2E7D32',
+    'some_validated': '#388E3C',
+    'pending':        '#b8860b',
+    'not_started':    None,          # inherits section stroke
 }
 
 
@@ -97,9 +109,7 @@ class HexGrid:
         indexA, indexB = (min(indexA, indexB), max(indexA, indexB))
         rowA, colA = (self.rowFor(indexA), self.colFor(indexA))
         rowB, colB = (self.rowFor(indexB), self.colFor(indexB))
-        diffRow = abs(rowA - rowB)
-        diffCol = abs(colA - colB)
-        return diffRow + diffCol + 1
+        return abs(rowA - rowB) + abs(colA - colB) + 1
 
     @staticmethod
     def bestCount(size):
@@ -127,48 +137,30 @@ def split_string_by_length(text, max_length):
     return segments
 
 
+def section_style_for(element, parts):
+    """Return a Style using colourful section colours (no B&W, no tickbox)."""
+    idx = find_part_containing(element, parts)
+    stroke, fill = SECTION_COLORS[idx % len(SECTION_COLORS)]
+    return Style(stroke, fill)
+
+
 def styles(config):
+    """Legacy style list (used by old yaml_to_svgs path)."""
+    colors = ["aquamarine", "lightblue", "lightgreen", "tomato",
+              "lightyellow", "lightpink", "lightgrey"]
     result = []
-    if config.blackAndWhite:
-        result.append(Style(darkColor, lightColor))
-        result.append(Style(lightColor, darkColor))
-        result.append(Style(darkColor, "#eee", polkaUrl))
-        result.append(Style(darkColor, "#aaa"))
-        result.append(Style(lightColor, "#444"))
-        result.append(Style(darkColor, "#eee", polka2Url))
-        result.append(Style(darkColor, "#fff", gradientUrl))
-        for width in range(2, 4):
-            for inverted in [True, False]:
-                for dashy in [1, 5, 10]:
-                    style = Style("black", "white")
-                    style.stroke_dasharray = dashy
-                    style.number_of_strokes = width
-                    style.fillColor = darkColor if inverted else lightColor
-                    style.strokeColor = lightColor if inverted else darkColor
-                    if width != 1 and dashy != 1:
-                        continue
-                    result.append(style)
-    else:
-        colors = ["aquamarine", "lightblue", "lightgreen", "tomato",
-                  "lightyellow", "lightpink", "lightgrey"]
-        for width in range(1, 4):
-            for color in colors:
-                style = Style("black", "white")
-                style.stroke_dasharray = 1
-                style.number_of_strokes = 1
-                style.stroke = darkColor
-                style.fillColor = color
-                result.append(style)
+    for color in colors:
+        s = Style("black", color)
+        result.append(s)
     return result
 
 
 def styleFor(element, parts, config):
-    toutes = styles(config)
-    indexOfPart = find_part_containing(element, parts)
-    return toutes[indexOfPart % len(toutes)]
+    return section_style_for(element, parts)
 
 
-def draw_hexagon(dwg, center_x, center_y, grid, text, style, config, container=None):
+def draw_hexagon(dwg, center_x, center_y, grid, text, style, config,
+                 container=None, annotation=None):
     if text == "___":
         return
     if container is None:
@@ -186,8 +178,8 @@ def draw_hexagon(dwg, center_x, center_y, grid, text, style, config, container=N
             x = center_x + grid.size * math.cos(angle_rad) * perimeter
             y = center_y + grid.size * math.sin(angle_rad) * perimeter
             if i == 0 and perimeter == 1.0:
-                xBox = center_x + grid.size * .8 * math.cos(angle_rad) * perimeter
-                yBox = center_y + grid.size * .8 * math.sin(angle_rad) * perimeter
+                xBox = center_x + grid.size * .8 * math.cos(angle_rad)
+                yBox = center_y + grid.size * .8 * math.sin(angle_rad)
             points.append((x, y))
         for i in range(6):
             x1, y1 = points[i]
@@ -214,37 +206,42 @@ def draw_hexagon(dwg, center_x, center_y, grid, text, style, config, container=N
             stroke_width=stroke_width / number_of_strokes,
             stroke_linecap="round",
             **extra))
-    if config.withTickBox:
-        pts, pts2 = [], []
-        for i in range(6):
-            angle_rad = math.radians(30 + 60 * i)
-            pts.append((xBox + grid.size / 11 * math.cos(angle_rad),
-                        yBox + grid.size / 11 * math.sin(angle_rad)))
-            pts2.append((xBox + grid.size / 9 * math.cos(angle_rad),
-                         yBox + grid.size / 9 * math.sin(angle_rad)))
-        container.add(dwg.polygon(pts2, fill=darkColor))
-        container.add(dwg.polygon(pts, fill='white'))
-    draw_text_multiline(center_x, center_y, dwg, grid, style, text, container=container)
+    draw_text_multiline(center_x, center_y, dwg, grid, style, text,
+                        container=container, annotation=annotation)
 
 
-def draw_text_multiline(center_x, center_y, dwg, grid, style, text, container=None):
+def draw_text_multiline(center_x, center_y, dwg, grid, style, text,
+                        container=None, annotation=None):
     if container is None:
         container = dwg
     lines = split_string_by_length(text, 13)
-    fillColor = "#000"
-    strokeColor = "#fff"
+    fill = "#000"
+    stroke = "#fff"
     base = ("font-family:Arial;font-weight:700;"
             "font-size:{};text-anchor:middle;".format(grid.size * 0.17))
     styleSVG = base + "stroke-width:{};stroke:{};fill:{};".format(
-        grid.size * 0.007, fillColor, fillColor)
+        grid.size * 0.007, fill, fill)
     style2SVG = base + "stroke-width:{};stroke:{};fill:{};".format(
-        grid.size * 0.04, strokeColor, strokeColor)
+        grid.size * 0.04, stroke, stroke)
     for i, line in enumerate(lines):
         lineheight = grid.size / 4
         y = center_y - grid.size / 3 + lineheight * i
         tr = "rotate(-30, {}, {})".format(center_x, center_y)
         container.add(dwg.text(line, insert=(center_x, y), style=style2SVG, transform=tr))
         container.add(dwg.text(line, insert=(center_x, y), style=styleSVG, transform=tr))
+
+    if annotation:
+        ann_size = grid.size * 0.14
+        ann_base = ("font-family:Arial;font-weight:600;"
+                    "font-size:{};text-anchor:middle;".format(ann_size))
+        tr = "rotate(-30, {}, {})".format(center_x, center_y)
+        y_ann = center_y + grid.size * 0.40
+        container.add(dwg.text(annotation, insert=(center_x, y_ann),
+                                style=ann_base + "stroke-width:0.03em;stroke:#fff;fill:#fff;",
+                                transform=tr))
+        container.add(dwg.text(annotation, insert=(center_x, y_ann),
+                                style=ann_base + "stroke-width:0;fill:#222;",
+                                transform=tr))
 
 
 def find_part_containing(element, parts):
@@ -259,14 +256,6 @@ def find_part_containing(element, parts):
 # ---------------------------------------------------------------------------
 
 def evaluation(individual, G, grid):
-    """Score a placement layout (higher = better).
-
-    Scoring:
-    +40   per edge whose endpoints are hex-adjacent          (adjacency bonus)
-    -12*d^2 per edge at hex-distance d > 0                  (quadratic gap penalty)
-    -deg * dist_from_centre * 2   per hub node (degree > 1) (centrality pull)
-    -row * 3   per prerequisite-free source node             (sources near top)
-    """
     asList = list(individual)
     score = 0.0
     center_row = (grid.rowCount - 1) / 2.0
@@ -296,12 +285,6 @@ def evaluation(individual, G, grid):
 
 
 def hill_climb(strings, G, grid, eval_fn, seed):
-    """Greedy pairwise-swap local search from a random start.
-
-    Tries every swap of two positions and takes the first improvement found
-    (first-improvement strategy). Stops when no single swap improves score.
-    Returns (best_score, best_individual).
-    """
     random.seed(seed)
     current = strings[:]
     random.shuffle(current)
@@ -319,22 +302,16 @@ def hill_climb(strings, G, grid, eval_fn, seed):
                     current_score = s
                     current = candidate
                     improved = True
-                    break   # restart outer loop with new best
+                    break
             if improved:
                 break
     return current_score, current
 
 
 def _grid_variants(n_skills: int) -> list:
-    """Return up to 3 distinct (rows, cols) grid shapes for n_skills.
-
-    Returns the canonical compact shape plus one wider and one taller option.
-    """
     base_r, base_c = HexGrid.bestCount(n_skills)
     seen = {(base_r, base_c)}
     variants = [(base_r, base_c)]
-
-    # Wide: increase columns until we save a row
     for extra in range(1, max(n_skills, 2)):
         c = base_c + extra
         r = math.ceil(n_skills / c)
@@ -342,8 +319,6 @@ def _grid_variants(n_skills: int) -> list:
             seen.add((r, c))
             variants.append((r, c))
             break
-
-    # Tall: increase rows until we save a column
     for extra in range(1, max(n_skills, 2)):
         r = base_r + extra
         c = math.ceil(n_skills / r)
@@ -351,7 +326,6 @@ def _grid_variants(n_skills: int) -> list:
             seen.add((r, c))
             variants.append((r, c))
             break
-
     return variants[:3]
 
 
@@ -360,21 +334,11 @@ def _ensure_results_folder():
 
 
 def compute_layout_options(data, n_seeds: int = 3) -> list:
-    """Compute several layout options for the teacher to choose from.
-
-    For each of the (up to 3) grid shape variants, runs hill-climb with
-    n_seeds random starts and keeps the best result.
-
-    Returns a list of dicts:
-        {'order': [...], 'rows': int, 'cols': int, 'svg': str,
-         'label': str, 'score': float}
-    """
     G = get_graph_from_data(data)
     strings = list(G.nodes)
     config = read_config_from_yaml(data)
     variants = _grid_variants(len(strings))
     _ensure_results_folder()
-
     labels = ['Compact', 'Large', 'Vertical']
     options = []
     seed_base = 1
@@ -401,10 +365,6 @@ def compute_layout_options(data, n_seeds: int = 3) -> list:
 
 
 def compute_best_order(data) -> dict:
-    """Compute the best layout for a YAML data dict.
-
-    Returns a dict: {'order': [...], 'rows': int, 'cols': int}
-    """
     G = get_graph_from_data(data)
     strings = list(G.nodes)
     rows, cols = HexGrid.bestCount(len(strings))
@@ -430,11 +390,57 @@ def draw_with_states(data, layout: dict, skill_states=None) -> str:
                            skill_states=skill_states, generate_pdf=False)
 
 
+def draw_with_group_stats(data, layout: dict, skill_stats: dict,
+                          total_students: int) -> str:
+    """Draw SVG for teacher group view with per-skill validation statistics.
+
+    skill_stats: {skill_name: {'validated': int, 'claimed': int}}
+    total_students: total enrolled students
+    """
+    config = read_config_from_yaml(data)
+    G = get_graph_from_data(data)
+    order = layout['order']
+    rows = layout.get('rows')
+    cols = layout.get('cols')
+    if rows is None or cols is None:
+        real = [s for s in order if s != '___']
+        rows, cols = HexGrid.bestCount(len(real))
+    grid = HexGrid(50, rows, cols)
+
+    skill_states = {}
+    annotations = {}
+    for skill in G.nodes:
+        stats = skill_stats.get(skill, {})
+        validated = stats.get('validated', 0)
+        claimed = stats.get('claimed', 0)
+        if total_students > 0 and validated >= total_students:
+            skill_states[skill] = 'all_validated'
+        elif validated > 0:
+            skill_states[skill] = 'some_validated'
+        elif claimed > 0:
+            skill_states[skill] = 'pending'
+        else:
+            skill_states[skill] = 'not_started'
+        if total_students > 0:
+            ann = '\u2713{}/{}'.format(validated, total_students)
+            if claimed > 0:
+                ann += ' \u23f3{}'.format(claimed)
+            annotations[skill] = ann
+        else:
+            annotations[skill] = ''
+
+    return draw_skill_tree(order, G, grid, config,
+                           skill_states=skill_states,
+                           annotations=annotations,
+                           generate_pdf=False)
+
+
 # ---------------------------------------------------------------------------
 # SVG drawing
 # ---------------------------------------------------------------------------
 
-def draw_skill_tree(skills, G, grid, config, skill_states=None, generate_pdf=True):
+def draw_skill_tree(skills, G, grid, config, skill_states=None,
+                    annotations=None, generate_pdf=True):
     global polkaUrl, polka2Url, gradientUrl
     width = grid.size * (2 * grid.colCount + 1)
     height = grid.size * (2 * grid.rowCount + 0.5)
@@ -445,7 +451,6 @@ def draw_skill_tree(skills, G, grid, config, skill_states=None, generate_pdf=Tru
         filename=file_name if generate_pdf else '',
         profile='full',
         size=(str(width), str(height)))
-    # viewBox makes the SVG scale with its CSS container
     dwg.viewbox(0, 0, width, height)
 
     radial = dwg.defs.add(dwg.radialGradient((0.5, 0.5), r=.6, fx=0.5, fy=0.5))
@@ -475,19 +480,43 @@ def draw_skill_tree(skills, G, grid, config, skill_states=None, generate_pdf=Tru
         (row, col) = grid.rowAndColFor(index)
         x = grid.size * (2 * col + (0 if row % 2 == 0 else 1) + 1)
         y = grid.size * (0.5 + row * math.sqrt(3) + math.sqrt(3) / 2)
+        ann = annotations.get(element) if annotations else None
 
         if skill_states is not None and element != '___':
             state = skill_states.get(element, 'locked')
-            style = Style(STATE_STROKES.get(state, darkColor),
-                          STATE_FILLS.get(state, lightColor))
+            sec = section_style_for(element, parts)
+
+            # Section fill preserved for all non-locked states;
+            # stroke colour encodes the state.
+            if state == 'locked':
+                style = Style('#aaaaaa', '#e0e0e0')
+            elif state == 'available':
+                style = Style(sec.strokeColor, sec.fillColor)
+            elif state == 'claimed':
+                style = Style('#b8860b', sec.fillColor)
+                style.number_of_strokes = 2
+            elif state == 'validated':
+                style = Style('#2E7D32', sec.fillColor)
+            elif state == 'rejected':
+                style = Style('#c62828', sec.fillColor)
+            elif state == 'all_validated':
+                style = Style('#1B5E20', '#a5d6a7')
+            elif state == 'some_validated':
+                style = Style('#388E3C', sec.fillColor)
+            elif state == 'pending':
+                style = Style('#b8860b', sec.fillColor)
+            else:  # not_started
+                style = sec
+
             skill_id = re.sub(r'[^a-zA-Z0-9]', '_', element)
-            group = dwg.g(id='hex-' + skill_id)
+            g_elem = dwg.g(id='hex-' + skill_id)
             hex_attr_map[skill_id] = (element, state)
-            draw_hexagon(dwg, x, y, grid, element, style, config, container=group)
-            dwg.add(group)
+            draw_hexagon(dwg, x, y, grid, element, style, config,
+                         container=g_elem, annotation=ann)
+            dwg.add(g_elem)
         else:
-            style = styleFor(element, parts, config)
-            draw_hexagon(dwg, x, y, grid, element, style, config)
+            style = section_style_for(element, parts)
+            draw_hexagon(dwg, x, y, grid, element, style, config, annotation=ann)
 
     marker = dwg.defs.add(dwg.marker(insert=(1, 1), size=(2, 2), orient='auto',
                                      markerUnits='strokeWidth', id='arrowhead'))
@@ -531,7 +560,6 @@ def draw_skill_tree(skills, G, grid, config, skill_states=None, generate_pdf=Tru
 
 
 def _inject_hex_data_attrs(svg_str: str, hex_attr_map: dict) -> str:
-    """Post-process SVG string to inject data-skill/data-state/class attrs."""
     for skill_id, (skill_name, state) in hex_attr_map.items():
         old = 'id="hex-{}"'.format(skill_id)
         new = ('id="hex-{}" data-skill="{}" data-state="{}" class="hex-group"'
@@ -563,7 +591,9 @@ def read_deps_from_yaml(data):
 
 def read_config_from_yaml(data):
     config = data.get('config', {}) or {}
-    return Config(config.get('blackAndWhite', True), config.get('withTickBox', True))
+    # Web rendering defaults: colourful, no tickbox
+    return Config(config.get('blackAndWhite', False),
+                  config.get('withTickBox', False))
 
 
 def get_graph_from_data(data):
@@ -608,7 +638,7 @@ def prep_results_folder():
 
 
 # ---------------------------------------------------------------------------
-# Legacy entry point (command-line use)
+# Legacy entry points
 # ---------------------------------------------------------------------------
 
 def file_to_svgs(file_path):
