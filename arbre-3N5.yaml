@@ -1,0 +1,57 @@
+config:
+  blackAndWhite: true
+  withTickBox: true
+
+sections:
+  - name: "Kotlin & Compose"
+    skills:
+      - "kotlin console"
+      - "Kotlin arguments"
+      - "Kotlin + librairies"
+      - "Compose base"
+      - "Compose mise en page"
+      - "Compose LazyColumn"
+      - "Compose navigation"
+      - "Compose tiroir navigation"
+      - "Compose i18n"
+  - name: "Architecture"
+    skills:
+      - "Structure, fonctions"
+      - "Structure, fichiers"
+  - name: "Intelligence artificielle"
+    skills:
+      - "IA, plugin IDE"
+      - "IA, choix modèle"
+      - "IA, client CLI"
+  - name: "Outils"
+    skills:
+      - "Outils débogueur"
+      - "Outils Layout Inspector"
+      - "Outils Logcat"
+
+skills:
+  - name: "kotlin console"
+    sequels: ["Kotlin + librairies", "Kotlin arguments", "Compose base"]
+  - name: "Kotlin arguments"
+  - name: "Kotlin + librairies"
+    sequels: ["Dimensions, flex et enfants"]
+  - name: "Compose base"
+    sequels: ["Compose mise en page", "Compose navigation", "Compose i18n"]
+  - name: "Compose mise en page"
+    sequels: ["Compose LazyColumn"]
+  - name: "Compose tiroir navigation"
+  - name: "Compose LazyColumn"
+  - name: "Compose navigation"
+    sequels: ["Compose tiroir navigation"]
+  - name: "Compose i18n"
+  - name: "Structure, fonctions"
+    sequels: ["Structure, fichiers"]
+  - name: "Structure, fichiers"
+  - name: "IA, plugin IDE"
+    sequels: ["IA, choix modèle", "IA, client CLI"]
+  - name: "IA, choix modèle"
+  - name: "IA, client CLI"
+  - name: "Outils débogueur"
+  - name: "Outils Layout Inspector"
+  - name: "Outils Logcat"
+

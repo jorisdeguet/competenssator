@@ -2,22 +2,58 @@ config:
   blackAndWhite: true
   withTickBox: true
 
+sections:
+  - name: "Interface & Mise en page"
+    skills:
+      - "UI basique"
+      - "Flutter Column et Row"
+      - "Dimensions, flex et enfants"
+      - "Multilingue"
+  - name: "Navigation & Listes"
+    skills:
+      - "Navigation"
+      - "Navigation tiroir"
+      - "ListView explicite"
+      - "ListView map et converter"
+  - name: "Réseau HTTP"
+    skills:
+      - "HTTP DIO"
+      - "DIO JSON"
+      - "DIO cookie"
+      - "DIO erreurs"
+  - name: "Firebase & Firestore"
+    skills:
+      - "Firebase intro"
+      - "Firebase authentification"
+      - "Firestore intro"
+      - "Firestore contrôle d'accès"
+      - "Firestore typés"
+      - "Firestore requêtes"
+
 skills:
   - name: "UI basique"
     sequels: ["Multilingue", "Flutter Column et Row"]
   - name: "Flutter Column et Row"
     sequels: ["Dimensions, flex et enfants"]
   - name: "Dimensions, flex et enfants"
+  - name: "Multilingue"
   - name: "Navigation"
     sequels: ["Navigation tiroir"]
   - name: "Navigation tiroir"
   - name: "ListView explicite"
     sequels: ["ListView map et converter"]
+  - name: "ListView map et converter"
   - name: "HTTP DIO"
     sequels: ["DIO JSON", "DIO cookie", "DIO erreurs"]
+  - name: "DIO JSON"
+  - name: "DIO cookie"
+  - name: "DIO erreurs"
   - name: "Firebase intro"
     sequels: ["Firebase authentification", "Firestore intro"]
+  - name: "Firebase authentification"
   - name: "Firestore intro"
     sequels: ["Firestore contrôle d'accès", "Firestore typés", "Firestore requêtes"]
-  - name: "Multilingue"
+  - name: "Firestore contrôle d'accès"
+  - name: "Firestore typés"
+  - name: "Firestore requêtes"
 

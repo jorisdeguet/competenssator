@@ -1,0 +1,67 @@
+config:
+  blackAndWhite: true
+  withTickBox: true
+
+sections:
+  - name: "Interface Compose"
+    skills:
+      - "Compose révision"
+      - "Compose Scaffold"
+  - name: "Réseau Retrofit"
+    skills:
+      - "Retrofit base"
+      - "Retrofit appels GET"
+      - "Retrofit POST et corps"
+      - "Retrofit objets JSON"
+      - "Retrofit sync et async"
+      - "Retrofit cookies"
+      - "Retrofit erreurs"
+      - "Retrofit attente"
+  - name: "Backend Spring Boot"
+    skills:
+      - "Spring Boot base"
+      - "Spring Boot Contrôleur"
+      - "Spring Boot service + BD"
+  - name: "Cybersécurité"
+    skills:
+      - "Cybersec injections"
+      - "Cybersec contrôle d'accès"
+  - name: "IA & Outils"
+    skills:
+      - "IA, plugin IDE"
+      - "IA, choix modèle"
+      - "IA, client CLI"
+      - "Outils débogueur"
+      - "Outils Network Inspector"
+      - "Outils Logcat"
+
+skills:
+  - name: "Compose révision"
+    sequels: ["Compose Scaffold"]
+  - name: "Compose Scaffold"
+  - name: "Retrofit base"
+    sequels: ["Retrofit cookies", "Retrofit sync et async", "Retrofit objets JSON", "Retrofit appels GET"]
+  - name: "Retrofit appels GET"
+    sequels: ["Retrofit POST et corps"]
+  - name: "Retrofit objets JSON"
+  - name: "Retrofit POST et corps"
+  - name: "Retrofit sync et async"
+    sequels: ["Retrofit cookies", "Retrofit erreurs", "Retrofit attente"]
+  - name: "Retrofit cookies"
+  - name: "Retrofit erreurs"
+  - name: "Retrofit attente"
+  - name: "Spring Boot base"
+    sequels: ["Spring Boot Contrôleur"]
+  - name: "Spring Boot Contrôleur"
+    sequels: ["Spring Boot service + BD"]
+  - name: "Spring Boot service + BD"
+  - name: "Cybersec injections"
+    sequels: ["Cybersec contrôle d'accès"]
+  - name: "Cybersec contrôle d'accès"
+  - name: "IA, plugin IDE"
+    sequels: ["IA, choix modèle", "IA, client CLI"]
+  - name: "IA, choix modèle"
+  - name: "IA, client CLI"
+  - name: "Outils débogueur"
+  - name: "Outils Network Inspector"
+  - name: "Outils Logcat"
