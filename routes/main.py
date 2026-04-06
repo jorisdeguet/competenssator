@@ -60,17 +60,6 @@ def register(app):
         return render_template('dashboard.html', user=user,
                                owned_info=owned_info, enrolled_info=enrolled_info)
 
-    # Legacy redirects
-    @app.route('/teacher/dashboard')
-    @login_required
-    def teacher_dashboard():
-        return redirect(url_for('dashboard'))
-
-    @app.route('/student/dashboard')
-    @login_required
-    def student_dashboard():
-        return redirect(url_for('dashboard'))
-
     @app.route('/join', methods=['GET', 'POST'])
     def join():
         if request.method == 'POST':

@@ -328,12 +328,6 @@ def register(app):
                                claim_list=claim_list,
                                unclaimed_skills=unclaimed_skills)
 
-    @app.route('/teacher/classes/<int:class_id>/groups/<int:group_id>/students/<int:student_id>/code')
-    @login_required
-    def teacher_student_code(class_id, group_id, student_id):
-        return redirect(url_for('teacher_student_progress',
-                                class_id=class_id, group_id=group_id, student_id=student_id))
-
     # -------------------------------------------------------------------------
     # Skill validation
     # -------------------------------------------------------------------------
@@ -408,20 +402,19 @@ def register(app):
 
 
 
-    @app.route('/teacher/classes/builder')
+
+
+    # -------------------------------------------------------------------------
+    # JSON API
+    # -------------------------------------------------------------------------
+
+    @app.route('/api/classes/<int:class_id>/skills')
     @login_required
-    def teacher_class_builder():
-        return render_template('teacher/class_builder.html')
-
-    @app.route('/demo')
-    def demo():
-        import yaml as pyyaml
-        data = cs.yaml_from_filepath('arbre-5N6.yaml')
-        source = pyyaml.dump(data, allow_unicode=True)
-        return render_template('test.html', yaml=source)
-
-    @app.route('/competenssator')
-    def compute_skill_tree():
-        yaml_str = request.args.get('yaml')
-        results = cs.file_to_svgs('arbre-5N6.yaml') if not yaml_str else cs.string_to_svgs(yaml_str)
-        return results[0] if results else ''
+    def api_class_skills(class_id):
+        cls = Class.query.get_or_404(class_id)
+        try:
+            data = yaml.safe_load(cls.yaml_content)
+            skills = sorted(cs.get_graph_from_data(data).nodes)
+        except Exception:
+            skills = []
+        return jsonify(skills)

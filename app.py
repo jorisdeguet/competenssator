@@ -1,9 +1,10 @@
 import os
 
-from flask import session
+from flask import session, redirect, request
 from flask import Flask
 
 from models import Class, SkillClaim, User, db
+from i18n import get_t
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-change-in-prod')

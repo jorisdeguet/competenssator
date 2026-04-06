@@ -23,7 +23,7 @@
   <div class="column is-4">
     <div class="card" style="height:100%;">
       <div class="card-content">
-        <h3 class="title is-5 mb-1">{{ item.cls.name }}</h3>
+        <h3 class="title is-5 mb-1" style="word-break:break-word; white-space:normal;">{{ item.cls.name }}</h3>
         <p class="has-text-grey mb-3" style="font-size:.82rem;">
           Créée le {{ item.cls.created_at.strftime('%d/%m/%Y') }}
         </p>
@@ -63,11 +63,11 @@
   <div class="column is-4">
     <div class="card" style="height:100%;">
       <div class="card-content">
-        <div class="level mb-2">
-          <div class="level-left">
-            <h3 class="title is-5 mb-0">{{ item.cls.name }}</h3>
+        <div class="level mb-2" style="flex-wrap:wrap; gap:.25rem; align-items:flex-start;">
+          <div class="level-left" style="flex-shrink:1; min-width:0; flex-wrap:wrap;">
+            <h3 class="title is-5 mb-0" style="word-break:break-word; white-space:normal;">{{ item.cls.name }}</h3>
           </div>
-          <div class="level-right">
+          <div class="level-right" style="flex-shrink:0;">
             <span class="tag {{ item.level[1] }} card-level">{{ item.level[0] }}</span>
           </div>
         </div>

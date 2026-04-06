@@ -146,14 +146,44 @@
               <div class="field">
                 <label class="label is-small">Compétence cible</label>
                 <div class="control">
-                  <input class="input is-small" type="text" name="target_skill"
-                         id="target-skill-input" placeholder="Nom exact" required>
+                  <div class="select is-small is-fullwidth" id="target-skill-wrapper">
+                    <select name="target_skill" id="target-skill-select" required disabled>
+                      <option value="">— Choisir une classe d'abord —</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
           <button class="button is-dark is-small" type="submit">Créer le lien</button>
         </form>
+        <script>
+        document.getElementById('target-class-select').addEventListener('change', function () {
+          var classId = this.value;
+          var sel = document.getElementById('target-skill-select');
+          sel.innerHTML = '<option value="">Chargement…</option>';
+          sel.disabled = true;
+          if (!classId) {
+            sel.innerHTML = '<option value="">— Choisir une classe d\'abord —</option>';
+            return;
+          }
+          fetch('/api/classes/' + classId + '/skills')
+            .then(function (r) { return r.json(); })
+            .then(function (skills) {
+              sel.innerHTML = '<option value="">— Choisir —</option>';
+              skills.forEach(function (s) {
+                var opt = document.createElement('option');
+                opt.value = s;
+                opt.textContent = s;
+                sel.appendChild(opt);
+              });
+              sel.disabled = false;
+            })
+            .catch(function () {
+              sel.innerHTML = '<option value="">Erreur de chargement</option>';
+            });
+        });
+        </script>
       </details>
     </div>
   </div>

@@ -22,10 +22,6 @@ def register(app):
                                    qr_data=qr_data, name=name)
         return render_template('register.html')
 
-    @app.route('/register/teacher')
-    def register_teacher():
-        return redirect(url_for('register'))
-
     @app.route('/login', methods=['GET', 'POST'])
     def login():
         if request.method == 'POST':
