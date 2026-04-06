@@ -7,18 +7,20 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.4/css/bulma.min.css">
   <style>
     :root {
-      --color-locked:    #cccccc;
-      --color-available: #ddeeff;
+      --color-locked:    #d0d0d0;
+      --color-available: #f0f0f0;
       --color-claimed:   #FFD700;
       --color-validated: #4CAF50;
       --color-rejected:  #FF6B6B;
     }
-    body { background: #f5f7fa; min-height: 100vh; }
-    .navbar { background: #1a1a2e !important; }
-    .navbar-brand .navbar-item { color: #e94560 !important; font-weight: 800; font-size: 1.2rem; letter-spacing: 1px; }
-    .navbar .navbar-item, .navbar .navbar-link { color: #ccc !important; }
-    .navbar .navbar-item:hover { color: #fff !important; background: transparent !important; }
-    .hero.is-game { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); }
+    body { background: #ffffff; min-height: 100vh; }
+    .navbar { background: #111111 !important; border-bottom: 2px solid #333; }
+    .navbar-brand .navbar-item { color: #ffffff !important; font-weight: 800; font-size: 1.2rem; letter-spacing: 1px; }
+    .navbar .navbar-item, .navbar .navbar-link { color: #cccccc !important; }
+    .navbar .navbar-item:hover { color: #ffffff !important; background: transparent !important; }
+    .navbar-dropdown { background: #222222 !important; border: 1px solid #444 !important; }
+    .navbar-dropdown .navbar-item { color: #cccccc !important; }
+    .navbar-dropdown .navbar-item:hover { background: #333 !important; color: #fff !important; }
     .hex-group { transition: opacity .15s; }
     .hex-group[data-state="available"], .hex-group[data-state="rejected"] { cursor: pointer; }
     .hex-group[data-state="available"]:hover, .hex-group[data-state="rejected"]:hover { opacity: .8; }
@@ -27,12 +29,18 @@
     .legend-dot { width: 16px; height: 16px; border-radius: 3px; border: 2px solid rgba(0,0,0,.2); flex-shrink: 0; }
     .progress-label { font-weight: 700; font-size: 1.1rem; }
     .code-display { font-family: monospace; font-size: 2.5rem; font-weight: 900; letter-spacing: 8px;
-                    background: #1a1a2e; color: #FFD700; padding: .5rem 1.5rem; border-radius: 8px;
+                    background: #111; color: #FFD700; padding: .5rem 1.5rem; border-radius: 8px;
                     display: inline-block; }
     .card-level { font-size: .75rem; font-weight: 700; }
     .svg-wrapper { overflow-x: auto; border: 1px solid #ddd; border-radius: 8px;
                    background: #fff; padding: .5rem; }
     .svg-wrapper svg { max-width: 100%; height: auto; }
+    .card { border: 1px solid #e0e0e0 !important; border-radius: 8px !important; box-shadow: 0 1px 4px rgba(0,0,0,.08) !important; }
+    .box { border: 1px solid #e8e8e8; box-shadow: 0 1px 4px rgba(0,0,0,.06) !important; }
+    .button.is-primary { background: #111 !important; border-color: #111 !important; color: #fff !important; }
+    .button.is-primary:hover { background: #333 !important; }
+    a.has-text-link, .has-text-link { color: #111 !important; text-decoration: underline; }
+    .tag.is-link { background: #111 !important; color: #fff !important; }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
@@ -48,18 +56,17 @@
         <div class="navbar-item has-dropdown is-hoverable">
           <a class="navbar-link" style="color:#ccc !important;">
             {{ session.user_name }}
-            {% if session.user_role == 'teacher' %}👩‍🏫{% else %}🎮{% endif %}
           </a>
-          <div class="navbar-dropdown is-right" style="background:#16213e;">
-            {% if session.user_role == 'teacher' %}
-              <a class="navbar-item" href="{{ url_for('teacher_dashboard') }}" style="color:#ccc!important;">Tableau de bord</a>
-            {% else %}
-              <a class="navbar-item" href="{{ url_for('student_dashboard') }}" style="color:#ccc!important;">Mes classes</a>
-            {% endif %}
-            <hr class="navbar-divider">
-            <a class="navbar-item" href="{{ url_for('logout') }}" style="color:#e94560!important;">Déconnexion</a>
+          <div class="navbar-dropdown is-right">
+            <a class="navbar-item" href="{{ url_for('dashboard') }}">Tableau de bord</a>
+            <a class="navbar-item" href="{{ url_for('join') }}">Rejoindre un groupe</a>
+            <hr class="navbar-divider" style="background:#444;">
+            <a class="navbar-item" href="{{ url_for('logout') }}" style="color:#ff6b6b !important;">Déconnexion</a>
           </div>
         </div>
+      {% else %}
+        <a class="navbar-item" href="{{ url_for('login') }}" style="color:#ccc!important;">Connexion</a>
+        <a class="navbar-item" href="{{ url_for('register') }}" style="color:#ccc!important;">Créer un compte</a>
       {% endif %}
     </div>
   </div>

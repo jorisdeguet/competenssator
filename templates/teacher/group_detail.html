@@ -49,7 +49,7 @@
     <!-- Invite code + QR -->
     <div class="box mb-4 has-text-centered">
       <p class="heading mb-1">Code d'invitation</p>
-      <p class="title is-2 has-text-link" style="letter-spacing:4px; font-family:monospace;">
+      <p class="title is-2" style="color:#111; letter-spacing:4px; font-family:monospace;">
         {{ group.invite_code }}
       </p>
       <img src="data:image/png;base64,{{ qr_data }}" alt="QR"
@@ -68,7 +68,7 @@
           <textarea class="textarea is-small" name="names" rows="5"
                     placeholder="Alice&#10;Bob&#10;Charlie" required></textarea>
         </div>
-        <button class="button is-link is-small" type="submit">Créer les comptes</button>
+        <button class="button is-dark is-small" type="submit">Créer les comptes</button>
       </form>
     </div>
 

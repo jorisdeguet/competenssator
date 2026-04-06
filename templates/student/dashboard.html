@@ -1,55 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Mes classes — Competenssator{% endblock %}
-
+{% block title %}Tableau de bord{% endblock %}
 {% block content %}
-<h1 class="title is-2 mb-1">🎮 Mes classes</h1>
-<p class="subtitle has-text-grey mb-5">Bonjour {{ user.display_name }} ! Choisis une classe pour voir ton arbre.</p>
-
-{% if classes_data %}
-<div class="columns is-multiline">
-  {% for item in classes_data %}
-  <div class="column is-4">
-    <div class="card" style="border-radius:12px; border-top: 4px solid
-      {% if item.progress >= 66 %}#FFD700
-      {% elif item.progress >= 33 %}#4a90d9
-      {% else %}#e94560{% endif %};
-      height:100%;">
-      <div class="card-content">
-        <div class="level mb-2">
-          <div class="level-left">
-            <h2 class="title is-4 mb-0">{{ item.cls.name }}</h2>
-          </div>
-          <div class="level-right">
-            <span class="tag {{ item.level[1] }} card-level">{{ item.level[0] }}</span>
-          </div>
-        </div>
-
-        <p class="has-text-grey mb-3" style="font-size:.85rem;">
-          {{ item.validated }} / {{ item.total }} compétence{{ 's' if item.total != 1 }} validée{{ 's' if item.validated != 1 }}
-        </p>
-
-        <progress class="progress mb-1
-          {% if item.progress >= 66 %}is-warning
-          {% elif item.progress >= 33 %}is-info
-          {% else %}is-danger{% endif %}"
-          value="{{ item.progress }}" max="100">{{ item.progress }}%</progress>
-        <p class="has-text-grey" style="font-size:.75rem; text-align:right;">{{ item.progress }}%</p>
-      </div>
-      <div class="card-footer">
-        <a class="card-footer-item has-text-weight-semibold"
-           href="{{ url_for('student_class_view', class_id=item.cls.id) }}">
-          Voir l'arbre →
-        </a>
-      </div>
-    </div>
-  </div>
-  {% endfor %}
-</div>
-{% else %}
-<div class="has-text-centered" style="padding:4rem 0;">
-  <p style="font-size:4rem;">⬡</p>
-  <h2 class="title is-4 has-text-grey">Tu n'es inscrit(e) dans aucune classe</h2>
-  <p class="has-text-grey">Demande à ton enseignant de t'ajouter à une classe.</p>
-</div>
-{% endif %}
+<script>window.location = "{{ url_for('dashboard') }}";</script>
+<p>Redirection...</p>
 {% endblock %}

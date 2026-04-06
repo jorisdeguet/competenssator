@@ -25,8 +25,7 @@
 </p>
 
 {% for opt in options %}
-<div class="box mb-5" style="border-left:4px solid
-  {% if loop.index == 1 %}#4a90d9{% elif loop.index == 2 %}#4CAF50{% else %}#FFD700{% endif %};">
+<div class="box mb-5" style="border-left:4px solid #111;">
 
   <div class="columns is-vcentered is-variable is-5">
 
@@ -50,7 +49,7 @@
         <input type="hidden" name="order_json" value='{{ opt.order | tojson }}'>
         <input type="hidden" name="rows" value="{{ opt.rows }}">
         <input type="hidden" name="cols" value="{{ opt.cols }}">
-        <button class="button is-link is-medium is-fullwidth" type="submit">
+        <button class="button is-dark is-medium is-fullwidth" type="submit">
           Choisir cette mise en page
         </button>
       </form>

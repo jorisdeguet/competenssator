@@ -18,7 +18,8 @@ class User(db.Model):
     # Stored in plain text so teachers can always recover student codes
     code = db.Column(db.String(8), unique=True, index=True, nullable=False)
     display_name = db.Column(db.String(100), nullable=False)
-    role = db.Column(db.String(10), nullable=False)  # 'teacher' or 'student'
+    # 'user' for all new accounts; legacy values 'teacher'/'student' still accepted
+    role = db.Column(db.String(10), nullable=False, default='user')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     classes_taught = db.relationship('Class', back_populates='teacher',
@@ -45,6 +46,14 @@ class Class(db.Model):
                              order_by='Group.name')
     claims = db.relationship('SkillClaim', back_populates='cls',
                              cascade='all, delete-orphan', lazy=True)
+    cross_links_from = db.relationship(
+        'CrossSkillLink', back_populates='source_class',
+        foreign_keys='CrossSkillLink.source_class_id',
+        cascade='all, delete-orphan', lazy=True)
+    cross_links_to = db.relationship(
+        'CrossSkillLink', back_populates='target_class',
+        foreign_keys='CrossSkillLink.target_class_id',
+        cascade='all, delete-orphan', lazy=True)
 
 
 class Group(db.Model):
@@ -98,3 +107,28 @@ class SkillClaim(db.Model):
                           foreign_keys=[class_id])
 
     __table_args__ = (db.UniqueConstraint('student_id', 'class_id', 'skill_name'),)
+
+
+class CrossSkillLink(db.Model):
+    """A directed link from a skill in one class to a skill in another class.
+
+    Semantics: completing source_skill in source_class is related to / a
+    prerequisite for target_skill in target_class.
+    """
+    __tablename__ = 'cross_skill_links'
+    id = db.Column(db.Integer, primary_key=True)
+    source_class_id = db.Column(db.Integer, db.ForeignKey('classes.id'), nullable=False)
+    source_skill = db.Column(db.String(200), nullable=False)
+    target_class_id = db.Column(db.Integer, db.ForeignKey('classes.id'), nullable=False)
+    target_skill = db.Column(db.String(200), nullable=False)
+    creator_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    source_class = db.relationship('Class', back_populates='cross_links_from',
+                                   foreign_keys=[source_class_id])
+    target_class = db.relationship('Class', back_populates='cross_links_to',
+                                   foreign_keys=[target_class_id])
+    creator = db.relationship('User', foreign_keys=[creator_id])
+
+    __table_args__ = (db.UniqueConstraint('source_class_id', 'source_skill',
+                                          'target_class_id', 'target_skill'),)

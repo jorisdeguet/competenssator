@@ -1,72 +1,23 @@
 {% extends "base.html" %}
-{% block title %}Accueil — Competenssator{% endblock %}
+{% block title %}Competenssator — Arbres de compétences{% endblock %}
 
 {% block content %}
-<section class="hero is-game is-medium" style="border-radius:12px; overflow:hidden; margin:-1rem 0 2.5rem;">
-  <div class="hero-body has-text-centered">
-    <p style="font-size:4rem;">⬡</p>
-    <h1 class="title is-1" style="color:#FFD700; font-weight:900; letter-spacing:2px;">Competenssator</h1>
-    <p class="subtitle" style="color:#aac4e0;">Suis ta progression de compétences comme dans un jeu vidéo</p>
-  </div>
-</section>
-
-<div class="columns is-centered is-variable is-4 is-multiline">
-
-  <!-- 1 – Teacher register -->
-  <div class="column is-6">
-    <div class="card has-shadow" style="border-top:4px solid #4a90d9; border-radius:12px; height:100%;">
-      <div class="card-content has-text-centered">
-        <p style="font-size:3rem;">👩‍🏫</p>
-        <h2 class="title is-4 mb-2">Créer un compte enseignant</h2>
-        <p class="has-text-grey mb-4">Première connexion ? Créez votre compte avec votre nom — vous recevrez un code unique à conserver.</p>
-        <a class="button is-link is-fullwidth" href="{{ url_for('register_teacher') }}">
-          Créer mon compte →
-        </a>
-      </div>
+<div class="columns is-centered">
+  <div class="column is-8 has-text-centered" style="padding-top:3rem;">
+    <p style="font-size:4rem; margin-bottom:1rem;">⬡</p>
+    <h1 class="title is-1 mb-3">Competenssator</h1>
+    <p class="subtitle has-text-grey mb-5">
+      Gérez et visualisez les arbres de compétences de vos classes.
+      Suivez la progression de vos apprenants en temps réel.
+    </p>
+    <div class="buttons is-centered">
+      <a class="button is-dark is-medium" href="{{ url_for('login') }}">Se connecter</a>
+      <a class="button is-light is-medium" href="{{ url_for('register') }}">Créer un compte</a>
     </div>
+    <p class="has-text-grey mt-5" style="font-size:.85rem;">
+      Vous avez un code d'invitation ?
+      <a href="{{ url_for('join') }}">Rejoindre un groupe directement →</a>
+    </p>
   </div>
-
-  <!-- 2 – Student new (join via invite) -->
-  <div class="column is-6">
-    <div class="card" style="border-top:4px solid #4CAF50; border-radius:12px; height:100%;">
-      <div class="card-content has-text-centered">
-        <p style="font-size:3rem;">🎮</p>
-        <h2 class="title is-4 mb-2">Créer un compte élève</h2>
-        <p class="has-text-grey mb-4">Tu as reçu un code d'invitation de ton enseignant ? Rejoins ta classe et crée ton compte.</p>
-        <a class="button is-success is-fullwidth" href="{{ url_for('join') }}">
-          Rejoindre avec un code →
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- 3 – Connect (both) -->
-  <div class="column is-6">
-    <div class="card" style="border-top:4px solid #e94560; border-radius:12px; height:100%;">
-      <div class="card-content has-text-centered">
-        <p style="font-size:3rem;">🔑</p>
-        <h2 class="title is-4 mb-2">Se connecter</h2>
-        <p class="has-text-grey mb-4">Tu as déjà un compte ? Entre ton code personnel de 8 caractères — fonctionne pour les enseignants comme pour les élèves.</p>
-        <a class="button is-danger is-fullwidth" href="{{ url_for('login') }}">
-          Se connecter →
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- 4 – Enter invite code (existing student joining another class) -->
-  <div class="column is-6">
-    <div class="card" style="border-top:4px solid #FFD700; border-radius:12px; height:100%;">
-      <div class="card-content has-text-centered">
-        <p style="font-size:3rem;">✉️</p>
-        <h2 class="title is-4 mb-2">Code d'invitation</h2>
-        <p class="has-text-grey mb-4">Tu as déjà un compte élève et tu veux rejoindre une nouvelle classe ? Entre le code d'invitation de ton enseignant.</p>
-        <a class="button is-warning is-fullwidth" href="{{ url_for('join') }}">
-          Entrer un code d'invitation →
-        </a>
-      </div>
-    </div>
-  </div>
-
 </div>
 {% endblock %}

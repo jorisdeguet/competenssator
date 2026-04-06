@@ -7,7 +7,7 @@
   <div class="level-left">
     <div>
       <h1 class="title is-3 mb-1">{{ cls.name }}</h1>
-      <a class="has-text-grey" href="{{ url_for('student_dashboard') }}">← Mes classes</a>
+      <a class="has-text-grey" href="{{ url_for('dashboard') }}">← Tableau de bord</a>
     </div>
   </div>
   <div class="level-right">
@@ -34,11 +34,11 @@
 <!-- Legend -->
 <div class="skill-legend mb-3">
   <div class="legend-item">
-    <div class="legend-dot" style="background:#cccccc; border-color:#999;"></div>
+    <div class="legend-dot" style="background:#d0d0d0; border-color:#999;"></div>
     <span class="has-text-grey">Verrouillée</span>
   </div>
   <div class="legend-item">
-    <div class="legend-dot" style="background:#ddeeff; border-color:#4a90d9;"></div>
+    <div class="legend-dot" style="background:#f0f0f0; border-color:#555;"></div>
     <span>Disponible <em>(clique pour déclarer !)</em></span>
   </div>
   <div class="legend-item">
@@ -60,11 +60,38 @@
   {{ svg | safe }}
 </div>
 
-<!-- Claim info -->
+<!-- Cross-skill link info -->
+{% if cross_link_info %}
+<div class="box mb-4">
+  <h2 class="title is-6 mb-2">🔗 Compétences liées dans d'autres classes</h2>
+  <table class="table is-fullwidth is-narrow is-striped">
+    <thead>
+      <tr><th>Classe</th><th>Compétence prérequise</th><th>→ Compétence ici</th><th>Statut</th></tr>
+    </thead>
+    <tbody>
+      {% for item in cross_link_info %}
+      <tr>
+        <td>{{ item.link.source_class.name }}</td>
+        <td><code>{{ item.link.source_skill }}</code></td>
+        <td><code>{{ item.link.target_skill }}</code></td>
+        <td>
+          {% if item.source_validated %}
+          <span class="tag" style="background:#e8f5e9; color:#2e7d32;">✓ Validée</span>
+          {% else %}
+          <span class="tag is-light">Non validée</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
 {% set pending = skill_states.values() | list | select('equalto', 'claimed') | list | length %}
 {% if pending > 0 %}
 <div class="notification is-warning is-light">
-  ⏳ Tu as {{ pending }} compétence{{ 's' if pending != 1 }} en attente de validation par ton enseignant.
+  ⏳ Tu as {{ pending }} compétence{{ 's' if pending != 1 }} en attente de validation.
 </div>
 {% endif %}
 
@@ -82,14 +109,13 @@ document.addEventListener('DOMContentLoaded', function () {
     if (state === 'locked') {
       group.style.cursor = 'not-allowed';
       group.style.opacity = '0.75';
-      group.setAttribute('title', 'Valide les compétences prérequises pour débloquer celle-ci');
     }
     if (state === 'available' || state === 'rejected') {
       group.addEventListener('click', function () {
         var skill = this.getAttribute('data-skill');
         var msg = state === 'rejected'
-          ? 'Re-soumettre la compétence « ' + skill + ' » à validation ?'
-          : 'Déclarer la compétence « ' + skill + ' » comme acquise ?';
+          ? 'Re-soumettre « ' + skill + ' » ?'
+          : 'Déclarer « ' + skill + ' » comme acquise ?';
         if (confirm(msg)) {
           document.getElementById('claim-skill-name').value = skill;
           document.getElementById('claim-form').submit();
@@ -100,4 +126,3 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 {% endblock %}
-

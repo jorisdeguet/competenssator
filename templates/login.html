@@ -4,7 +4,7 @@
 {% block content %}
 <div class="columns is-centered">
   <div class="column is-5">
-    <div class="card" style="border-radius:12px; border-top: 4px solid #FFD700;">
+    <div class="card" style="border-radius:12px; border-top: 4px solid #111;">
       <div class="card-content">
         <div class="has-text-centered mb-4">
           <p style="font-size:3rem;">🔑</p>
@@ -27,7 +27,7 @@
 
           <div class="field mt-4">
             <div class="control">
-              <button class="button is-warning is-fullwidth is-medium" type="submit">
+              <button class="button is-dark is-fullwidth is-medium" type="submit">
                 <span>Se connecter</span>
                 <span style="margin-left:.5rem;">→</span>
               </button>
@@ -38,7 +38,7 @@
         <div class="has-text-centered mt-4">
           <a class="has-text-grey" href="{{ url_for('index') }}">← Retour à l'accueil</a>
           &nbsp;|&nbsp;
-          <a class="has-text-grey" href="{{ url_for('register_teacher') }}">Créer un compte enseignant</a>
+          <a class="has-text-grey" href="{{ url_for('register') }}">Créer un compte</a>
         </div>
       </div>
     </div>

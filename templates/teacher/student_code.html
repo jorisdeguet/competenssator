@@ -20,8 +20,7 @@
   <p class="title is-4 mb-4">{{ student.display_name }}</p>
 
   <p class="heading mb-2">Code de connexion</p>
-  <p class="title is-1 has-text-link mb-4"
-     style="letter-spacing:4px; font-family:monospace;">{{ student.code }}</p>
+  <p class="code-display mb-4">{{ student.code }}</p>
 
   <img src="data:image/png;base64,{{ qr_data }}" alt="QR code"
        style="width:180px; height:180px; margin:0 auto 1.5rem; display:block;">
@@ -37,6 +36,6 @@
      href="{{ url_for('teacher_group_detail', class_id=cls.id, group_id=group.id) }}">
     ← Retour au groupe
   </a>
-  <button class="button is-link" onclick="window.print()">🖨️ Imprimer</button>
+  <button class="button is-dark" onclick="window.print()">🖨️ Imprimer</button>
 </div>
 {% endblock %}
