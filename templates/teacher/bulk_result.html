@@ -1,30 +1,29 @@
-{% extends "base.html" %}
-{% block title %}Élèves créés — {{ group.name }}{% endblock %}
+{% block title %}{{ t('bulk.title') }} — {{ group.name }}{% endblock %}
 
 {% block content %}
 <div class="level mb-4">
   <div class="level-left">
     <div>
-      <h1 class="title is-3">✅ Élèves créés</h1>
+      <h1 class="title is-3">{{ t('bulk.title') }}</h1>
       <a class="has-text-grey" href="{{ url_for('teacher_group_detail', class_id=cls.id, group_id=group.id) }}">
-        ← Retour au groupe {{ group.name }}
+        {{ t('bulk.back') }} {{ group.name }}
       </a>
     </div>
   </div>
 </div>
 
 <div class="notification is-success is-light mb-4">
-  <strong>{{ created|length }} élève{{ 's' if created|length != 1 }}</strong> ajouté{{ 's' if created|length != 1 }}
-  au groupe <strong>{{ group.name }}</strong>.
-  Distribuez les codes ci-dessous à chaque élève.
+  <strong>{{ created|length }} {{ t('common.student') if created|length == 1 else t('common.students') }}</strong> {{ t('bulk.added') if created|length == 1 else t('bulk.added_pl') }}
+  {{ lang == 'fr' and 'au groupe' or 'to group' }} <strong>{{ group.name }}</strong>.
+  {{ t('bulk.distribute') }}
 </div>
 
 <div class="box">
   <table class="table is-fullwidth is-striped">
     <thead>
       <tr>
-        <th>Prénom</th>
-        <th>Code de connexion</th>
+        <th>{{ t('bulk.first_name') }}</th>
+        <th>{{ t('bulk.login_code') }}</th>
       </tr>
     </thead>
     <tbody>
@@ -44,8 +43,8 @@
 
 <div class="buttons mt-4">
   <a class="button is-dark" href="{{ url_for('teacher_group_detail', class_id=cls.id, group_id=group.id) }}">
-    ← Retour au groupe
+    {{ t('bulk.back') }}
   </a>
-  <button class="button is-light" onclick="window.print()">🖨️ Imprimer</button>
+  <button class="button is-light" onclick="window.print()">{{ t('common.print') }}</button>
 </div>
 {% endblock %}

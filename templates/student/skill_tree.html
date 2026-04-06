@@ -7,7 +7,7 @@
 {% if new_notifications %}
 <div class="notification is-info is-light mb-4" style="position:relative;">
   <button class="delete" onclick="this.parentElement.remove()"></button>
-  <strong>🔔 Nouvelles réponses de ton enseignant·e !</strong>
+  <strong>🔔 {{ t('tree.new_notif') }}</strong>
   <ul class="mt-2">
     {% for c in new_notifications %}
     <li>
@@ -31,7 +31,7 @@
     <div class="box mb-4" style="padding:1rem 1.25rem;">
       <div class="level mb-2">
         <div class="level-left">
-          <span class="progress-label">🏆 {{ validated_count }} / {{ total }} compétences validées</span>
+          <span class="progress-label">🏆 {{ validated_count }} / {{ total }} {{ t('common.skill') if validated_count == 1 else t('common.skills') }} {{ t('dash.validated') if validated_count == 1 else t('dash.validated_pl') }}</span>
         </div>
         <div class="level-right">
           <span class="has-text-grey">{{ progress }}%</span>
@@ -45,23 +45,23 @@
     <div class="skill-legend mb-3">
       <div class="legend-item">
         <div class="legend-dot" style="background:#d0d0d0; border-color:#999;"></div>
-        <span class="has-text-grey">Verrouillée</span>
+        <span class="has-text-grey">{{ t('tree.locked') }}</span>
       </div>
       <div class="legend-item">
         <div class="legend-dot" style="background:#f0f0f0; border-color:#555;"></div>
-        <span>Disponible <em>(clique pour déclarer !)</em></span>
+        <span>{{ t('tree.available') }} <em>{{ t('tree.available_hint') }}</em></span>
       </div>
       <div class="legend-item">
         <div class="legend-dot" style="background:#FFD700; border-color:#b8860b;"></div>
-        <span>En attente</span>
+        <span>{{ t('tree.pending') }}</span>
       </div>
       <div class="legend-item">
         <div class="legend-dot" style="background:#4CAF50; border-color:#2E7D32;"></div>
-        <span>✓ Validée</span>
+        <span>{{ t('tree.validated_tag') }}</span>
       </div>
       <div class="legend-item">
         <div class="legend-dot" style="background:#FF6B6B; border-color:#b71c1c;"></div>
-        <span>Refusée</span>
+        <span>{{ t('tree.rejected_tag') }}</span>
       </div>
     </div>
 
@@ -73,10 +73,10 @@
     <!-- Cross-skill links -->
     {% if cross_link_info %}
     <div class="box mb-4">
-      <h2 class="title is-6 mb-2">🔗 Compétences liées dans d'autres classes</h2>
+      <h2 class="title is-6 mb-2">🔗 {{ t('tree.cross_links') }}</h2>
       <table class="table is-fullwidth is-narrow is-striped">
         <thead>
-          <tr><th>Classe</th><th>Prérequis</th><th>→ Ici</th><th>Statut</th></tr>
+          <tr><th>{{ t('tree.class_col') }}</th><th>{{ t('tree.prereq_col') }}</th><th>{{ t('tree.here_col') }}</th><th>{{ t('tree.status_col') }}</th></tr>
         </thead>
         <tbody>
           {% for item in cross_link_info %}
@@ -86,9 +86,9 @@
             <td><code>{{ item.link.target_skill }}</code></td>
             <td>
               {% if item.source_validated %}
-              <span class="tag" style="background:#e8f5e9; color:#2e7d32;">✓ Validée</span>
+              <span class="tag" style="background:#e8f5e9; color:#2e7d32;">{{ t('tree.validated_tag') }}</span>
               {% else %}
-              <span class="tag is-light">Non validée</span>
+              <span class="tag is-light">{{ t('tree.not_validated') }}</span>
               {% endif %}
             </td>
           </tr>
@@ -102,18 +102,17 @@
 
   <!-- Right (4): pending + notes history -->
   <div class="column is-4">
-
     {% set pending = skill_states.values() | list | select('equalto', 'claimed') | list | length %}
     {% if pending > 0 %}
     <div class="notification is-warning is-light mb-4">
-      ⏳ {{ pending }} compétence{{ 's' if pending != 1 }} en attente de validation.
+      ⏳ {{ pending }} {{ t('common.skill') if pending == 1 else t('common.skills') }} {{ t('tree.pending_warn') if pending == 1 else t('tree.pending_warn_pl') }}
     </div>
     {% endif %}
 
     <!-- Notes history from teacher -->
     {% if history_claims %}
     <div class="box">
-      <h2 class="title is-6 mb-3">📝 Notes de ton enseignant·e</h2>
+      <h2 class="title is-6 mb-3">{{ t('tree.teacher_notes') }}</h2>
       {% for c in history_claims %}
       <div class="mb-3 pb-3" style="{% if not loop.last %}border-bottom:1px solid #f0f0f0;{% endif %}">
         <div class="level mb-1" style="align-items:flex-start;">
@@ -122,9 +121,9 @@
           </div>
           <div class="level-right" style="flex-shrink:0; margin-left:.5rem;">
             {% if c.status == 'validated' %}
-            <span class="tag" style="background:#e8f5e9;color:#2e7d32;font-size:.7rem;">✅ Validée</span>
+            <span class="tag" style="background:#e8f5e9;color:#2e7d32;font-size:.7rem;">✅ {{ t('tree.validated_tag') }}</span>
             {% else %}
-            <span class="tag" style="background:#ffebee;color:#b71c1c;font-size:.7rem;">❌ Refusée</span>
+            <span class="tag" style="background:#ffebee;color:#b71c1c;font-size:.7rem;">❌ {{ t('tree.rejected_tag') }}</span>
             {% endif %}
           </div>
         </div>
@@ -140,7 +139,7 @@
     {% else %}
     <div class="box has-text-grey has-text-centered" style="font-size:.9rem; padding:2rem 1rem;">
       <p>📭</p>
-      <p>Aucune note de ton enseignant·e pour l'instant.</p>
+      <p>{{ t('tree.no_notes') }}</p>
     </div>
     {% endif %}
 
@@ -165,9 +164,9 @@ document.addEventListener('DOMContentLoaded', function () {
     if (state === 'available' || state === 'rejected') {
       group.addEventListener('click', function () {
         var skill = this.getAttribute('data-skill');
-        var msg = state === 'rejected'
-          ? 'Re-soumettre « ' + skill + ' » ?'
-          : 'Déclarer « ' + skill + ' » comme acquise ?';
+        var resubmitTpl = {{ t('tree.resubmit_js') | tojson }};
+        var declareTpl  = {{ t('tree.declare_js')  | tojson }};
+        var msg = (state === 'rejected' ? resubmitTpl : declareTpl).replace('{skill}', skill);
         if (confirm(msg)) {
           document.getElementById('claim-skill-name').value = skill;
           document.getElementById('claim-form').submit();

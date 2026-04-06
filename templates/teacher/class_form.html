@@ -1,17 +1,17 @@
 {% extends "base.html" %}
-{% block title %}{{ 'Modifier' if action == 'edit' else 'Nouvelle' }} classe — Competenssator{% endblock %}
+{% block title %}{{ t('form.edit_title') if action == 'edit' else t('form.new_title') }} — Competenssator{% endblock %}
 
 {% block content %}
 <div class="level mb-4">
   <div class="level-left">
     <div>
       <h1 class="title is-3">
-        {{ '✏️ Modifier la classe' if action == 'edit' else '+ Nouvelle classe' }}
+        {{ t('form.edit_title') if action == 'edit' else t('form.new_title') }}
       </h1>
       {% if action == 'edit' %}
-      <a class="has-text-grey" href="{{ url_for('teacher_class_detail', class_id=cls.id) }}">← Retour à la classe</a>
+      <a class="has-text-grey" href="{{ url_for('teacher_class_detail', class_id=cls.id) }}">{{ t('form.back_class') }}</a>
       {% else %}
-      <a class="has-text-grey" href="{{ url_for('dashboard') }}">← Tableau de bord</a>
+      <a class="has-text-grey" href="{{ url_for('dashboard') }}">{{ t('common.back_dash') }}</a>
       {% endif %}
     </div>
   </div>
@@ -20,36 +20,34 @@
 <form method="POST"
       action="{{ url_for('teacher_class_edit', class_id=cls.id) if action == 'edit' else url_for('teacher_class_new') }}">
   <div class="field">
-    <label class="label is-medium">Nom de la classe</label>
+    <label class="label is-medium">{{ t('form.class_name') }}</label>
     <div class="control">
       <input class="input is-medium" type="text" name="name"
-             value="{{ name }}" placeholder="Ex : Terminale NSI – Groupe A" required autofocus>
+             value="{{ name }}" placeholder="{{ t('form.class_name_ph') }}" required autofocus>
     </div>
   </div>
 
   <div class="field mt-4">
     <label class="label is-medium">
-      Arbre de compétences (YAML)
-      <a class="has-text-grey is-size-7 ml-2" href="{{ url_for('demo') }}" target="_blank">Voir un exemple ↗</a>
+      {{ t('form.yaml_label') }}
+      <a class="has-text-grey is-size-7 ml-2" href="{{ url_for('demo') }}" target="_blank">{{ t('form.example') }}</a>
     </label>
     <div class="control">
       <textarea class="textarea" name="yaml_content" rows="24"
                 style="font-family:monospace; font-size:.85rem;" required>{{ yaml_content }}</textarea>
     </div>
-    <p class="help">
-      Définissez vos compétences avec les clés <code>skills</code> et <code>deps</code> (ou <code>sequels</code>).
-    </p>
+    <p class="help">{{ t('form.yaml_help') | safe }}</p>
   </div>
 
   <div class="field mt-4">
     <div class="buttons">
       <button class="button is-dark is-medium" type="submit">
-        {{ '💾 Enregistrer les modifications' if action == 'edit' else '🚀 Créer la classe' }}
+        {{ t('form.save') if action == 'edit' else t('form.create_btn') }}
       </button>
       {% if action == 'edit' %}
-      <a class="button is-light" href="{{ url_for('teacher_class_detail', class_id=cls.id) }}">Annuler</a>
+      <a class="button is-light" href="{{ url_for('teacher_class_detail', class_id=cls.id) }}">{{ t('common.cancel') }}</a>
       {% else %}
-      <a class="button is-light" href="{{ url_for('dashboard') }}">Annuler</a>
+      <a class="button is-light" href="{{ url_for('dashboard') }}">{{ t('common.cancel') }}</a>
       {% endif %}
     </div>
   </div>

@@ -161,6 +161,17 @@
                  background:#e53935;border-radius:50%;display:inline-block;"></span>
     {% endif %}
   </button></div>
+{% else %}
+<!-- Minimal topbar for unauthenticated pages with lang toggle -->
+<div class="topbar">
+  <a class="topbar-brand" href="{{ url_for('index') }}">⬡ Competenssator</a>
+  <div style="display:flex;gap:.4rem;align-items:center;">
+    <a href="{{ url_for('set_lang', lang='fr') }}"
+       style="color:{% if lang=='fr' %}#fff{% else %}#888{% endif %};font-size:.85rem;font-weight:{% if lang=='fr' %}700{% else %}400{% endif %};text-decoration:none;padding:.25rem .5rem;">FR</a>
+    <a href="{{ url_for('set_lang', lang='en') }}"
+       style="color:{% if lang=='en' %}#fff{% else %}#888{% endif %};font-size:.85rem;font-weight:{% if lang=='en' %}700{% else %}400{% endif %};text-decoration:none;padding:.25rem .5rem;">EN</a>
+  </div>
+</div>
 {% endif %}
 
 {% if session.get('user_name') %}

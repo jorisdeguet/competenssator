@@ -1,28 +1,24 @@
-{% extends "base.html" %}
-{% block title %}Choisir la mise en page — {{ cls.name }}{% endblock %}
-{% block topbar_title %} Mise en page — {{ cls.name }}{% endblock %}
+{% block title %}{{ t('layout.title') }} — {{ cls.name }}{% endblock %}
+{% block topbar_title %} {{ t('cls.layout') }} — {{ cls.name }}{% endblock %}
 
 {% block content %}
 <div class="level mb-4">
   <div class="level-left">
     <div>
-      <h1 class="title is-3">🗺️ Choisir la mise en page</h1>
+      <h1 class="title is-3">{{ t('layout.title') }}</h1>
       <p class="subtitle has-text-grey">{{ cls.name }}</p>
     </div>
   </div>
   <div class="level-right">
     {% if cls.skill_order %}
     <a class="button is-light" href="{{ url_for('teacher_class_detail', class_id=cls.id) }}">
-      ← Annuler
+      {{ t('layout.cancel') }}
     </a>
     {% endif %}
   </div>
 </div>
 
-<p class="mb-5 has-text-grey">
-  Trois dispositions ont été calculées par l'optimiseur ILP (PuLP/CBC). Les compétences reliées
-  sont contraintes d'être voisines dans la grille hexagonale. Choisissez la disposition qui convient.
-</p>
+<p class="mb-5 has-text-grey">{{ t('layout.hint') }}</p>
 
 {% for opt in options %}
 <div class="box mb-5" style="border-left:4px solid {% if opt.violations == 0 %}#2e7d32{% else %}#b45309{% endif %};">
@@ -38,19 +34,19 @@
 
     <!-- Info + button (right, 40%) -->
     <div class="column is-5 has-text-centered-mobile">
-      <p class="heading mb-1">Option {{ loop.index }}</p>
+      <p class="heading mb-1">{{ t('layout.option') }} {{ loop.index }}</p>
       <p class="title is-4 mb-1">{{ opt.label }}</p>
       <p class="has-text-grey mb-2" style="font-size:.9rem;">
-        {{ opt.rows }} rangée{{ 's' if opt.rows != 1 }} ×
-        {{ opt.cols }} colonne{{ 's' if opt.cols != 1 }}
+        {{ opt.rows }} {{ t('layout.row') if opt.rows == 1 else t('layout.rows') }} ×
+        {{ opt.cols }} {{ t('layout.col') if opt.cols == 1 else t('layout.cols') }}
       </p>
       {% if opt.violations == 0 %}
         <p class="mb-4" style="font-size:.85rem; color:#2e7d32; font-weight:600;">
-          ✓ Toutes les contraintes de voisinage sont satisfaites
+          {{ t('layout.all_satisfied') }}
         </p>
       {% else %}
         <p class="mb-4" style="font-size:.85rem; color:#b45309; font-weight:600;">
-          ⚠ {{ opt.violations }} lien{{ 's' if opt.violations > 1 }} non-adjacent{{ 's' if opt.violations > 1 }}
+          ⚠ {{ opt.violations }} {{ t('layout.violation') if opt.violations == 1 else t('layout.violations') }}
         </p>
       {% endif %}
 
@@ -59,7 +55,7 @@
         <input type="hidden" name="rows" value="{{ opt.rows }}">
         <input type="hidden" name="cols" value="{{ opt.cols }}">
         <button class="button is-dark is-medium is-fullwidth" type="submit">
-          Choisir cette mise en page
+          {{ t('layout.choose') }}
         </button>
       </form>
     </div>
