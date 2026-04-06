@@ -1,59 +1,44 @@
-config:
-  blackAndWhite: true
-  withTickBox: true
-
-sections:
-  - name: "Interface & Mise en page"
-    skills:
-      - "UI basique"
-      - "Flutter Column et Row"
-      - "Dimensions, flex et enfants"
-      - "Multilingue"
-  - name: "Navigation & Listes"
-    skills:
-      - "Navigation"
-      - "Navigation tiroir"
-      - "ListView explicite"
-      - "ListView map et converter"
-  - name: "Réseau HTTP"
-    skills:
-      - "HTTP DIO"
-      - "DIO JSON"
-      - "DIO cookie"
-      - "DIO erreurs"
-  - name: "Firebase & Firestore"
-    skills:
-      - "Firebase intro"
-      - "Firebase authentification"
-      - "Firestore intro"
-      - "Firestore contrôle d'accès"
-      - "Firestore typés"
-      - "Firestore requêtes"
-
 skills:
   - name: "UI basique"
+    tags: ["Interface"]
     sequels: ["Multilingue", "Flutter Column et Row"]
   - name: "Flutter Column et Row"
+    tags: ["Interface"]
     sequels: ["Dimensions, flex et enfants"]
   - name: "Dimensions, flex et enfants"
+    tags: ["Interface"]
   - name: "Multilingue"
+    tags: ["Interface"]
   - name: "Navigation"
+    tags: ["Navigation"]
     sequels: ["Navigation tiroir"]
   - name: "Navigation tiroir"
+    tags: ["Navigation"]
   - name: "ListView explicite"
+    tags: ["Navigation"]
     sequels: ["ListView map et converter"]
   - name: "ListView map et converter"
+    tags: ["Navigation"]
   - name: "HTTP DIO"
+    tags: ["Réseau"]
     sequels: ["DIO JSON", "DIO cookie", "DIO erreurs"]
   - name: "DIO JSON"
+    tags: ["Réseau"]
   - name: "DIO cookie"
+    tags: ["Réseau"]
   - name: "DIO erreurs"
+    tags: ["Réseau"]
   - name: "Firebase intro"
+    tags: ["Firebase"]
     sequels: ["Firebase authentification", "Firestore intro"]
   - name: "Firebase authentification"
+    tags: ["Firebase"]
   - name: "Firestore intro"
+    tags: ["Firebase"]
     sequels: ["Firestore contrôle d'accès", "Firestore typés", "Firestore requêtes"]
   - name: "Firestore contrôle d'accès"
+    tags: ["Firebase"]
   - name: "Firestore typés"
+    tags: ["Firebase"]
   - name: "Firestore requêtes"
-
+    tags: ["Firebase"]

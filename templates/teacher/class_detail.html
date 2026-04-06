@@ -1,11 +1,28 @@
 {% extends "base.html" %}
 {% block title %}{{ cls.name }} — Gestion{% endblock %}
+{% block topbar_title %} {{ cls.name }}{% endblock %}
 
 {% block content %}
+{% if new_claims %}
+<div class="notification is-warning is-light mb-4" style="position:relative;">
+  <button class="delete" onclick="this.parentElement.remove()"></button>
+  <strong>🔔 {{ new_claims|length }} nouvelle{{ 's' if new_claims|length > 1 }} compétence{{ 's' if new_claims|length > 1 }} soumise{{ 's' if new_claims|length > 1 }} !</strong>
+  <ul class="mt-1">
+    {% for c in new_claims %}
+    <li>
+      <strong>{{ c.student.display_name }}</strong> — {{ c.skill_name }}
+      <span class="has-text-grey" style="font-size:.8rem;">
+        ({{ c.claimed_at.strftime('%d/%m à %H:%M') }})
+      </span>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
 <div class="level mb-3">
   <div class="level-left">
     <div>
-      <h1 class="title is-3">{{ cls.name }}</h1>
       <a class="has-text-grey" href="{{ url_for('dashboard') }}">← Tableau de bord</a>
     </div>
   </div>

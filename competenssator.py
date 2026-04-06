@@ -267,12 +267,19 @@ def find_part_containing(element, parts):
 def get_parts_from_data(data, G):
     """Return skill groups (parts) for colour assignment.
 
-    Uses 'sections' from YAML if present; falls back to connected components.
-    Each part is a set of skill names.
+    Reads per-skill 'tags' from YAML if present; falls back to connected components.
+    Each part is a set of skill names sharing the same tag.
     """
-    sections = (data or {}).get('sections')
-    if sections:
-        parts = [set(sec.get('skills', [])) for sec in sections if sec.get('skills')]
+    skills = (data or {}).get('skills', [])
+    tag_map = {}  # tag -> set of skill names
+    for skill in skills:
+        name = skill.get('name', '')
+        tags = skill.get('tags', [])
+        tag = tags[0] if tags else None
+        if tag:
+            tag_map.setdefault(tag, set()).add(name)
+    if tag_map:
+        parts = list(tag_map.values())
         categorized = {s for p in parts for s in p}
         uncategorized = set(G.nodes) - categorized - {'___'}
         if uncategorized:
@@ -285,12 +292,13 @@ def get_parts_from_data(data, G):
 # Placement evaluation
 # ---------------------------------------------------------------------------
 
-def evaluation(individual, G, grid):
+def evaluation(individual, G, grid, tag_groups=None):
     """Score a skill placement.
 
     Primary objective: every connected pair must be hexagonally adjacent.
     +10 000 per adjacent edge, -(10 000 + 100·d²) per non-adjacent edge.
     Secondary (tie-breaker): hub nodes near centre, sources near top.
+    Tag bonus: +300 per same-tag pair placed hex-adjacent (encourages clustering).
     """
     asList = list(individual)
     score = 0.0
@@ -317,6 +325,16 @@ def evaluation(individual, G, grid):
     for source in [s for s in G.nodes if G.in_degree(s) == 0]:
         score -= grid.rowFor(asList.index(source)) * 1.0   # secondary: sources near top
 
+    if tag_groups:
+        for group in tag_groups:
+            members = [s for s in group if s in asList]
+            for idx_a in range(len(members)):
+                for idx_b in range(idx_a + 1, len(members)):
+                    ia = asList.index(members[idx_a])
+                    ib = asList.index(members[idx_b])
+                    if grid.areIndexConnected(ia, ib):
+                        score += 300.0
+
     return score
 
 
@@ -335,15 +353,17 @@ def get_adjacency_warnings(data) -> list:
     return warnings
 
 
-def simulated_annealing(strings, G, grid, eval_fn, seed, n_iter=None):
+def simulated_annealing(strings, G, grid, eval_fn, seed, n_iter=None, eval_kwargs=None):
     """Fallback SA solver used when ILP times out or fails."""
+    if eval_kwargs is None:
+        eval_kwargs = {}
     random.seed(seed)
     n = len(strings)
     if n_iter is None:
         n_iter = max(n * n * 30, 8_000)
     current = strings[:]
     random.shuffle(current)
-    current_score = eval_fn(current, G, grid)
+    current_score = eval_fn(current, G, grid, **eval_kwargs)
     best = current[:]
     best_score = current_score
     n_edges = max(len(G.edges), 1)
@@ -354,7 +374,7 @@ def simulated_annealing(strings, G, grid, eval_fn, seed, n_iter=None):
     for _ in range(n_iter):
         a, b = random.sample(range(n), 2)
         current[a], current[b] = current[b], current[a]
-        s = eval_fn(current, G, grid)
+        s = eval_fn(current, G, grid, **eval_kwargs)
         delta = s - current_score
         if delta > 0 or (T > 0 and random.random() < math.exp(max(delta / T, -700))):
             current_score = s
@@ -527,6 +547,7 @@ def compute_layout_options(data, time_limit=25) -> list:
     strings = list(G.nodes)
     config = read_config_from_yaml(data)
     parts = get_parts_from_data(data, G)
+    tag_groups = parts  # parts already represent tag groups when tags are present
     variants = _grid_variants(len(strings))
     _ensure_results_folder()
     labels = ['Compact', 'Large', 'Vertical']
@@ -536,7 +557,10 @@ def compute_layout_options(data, time_limit=25) -> list:
         grid = HexGrid(50, rows, cols)
         score, order = ilp_layout(padded, G, grid, time_limit=time_limit)
         if order is None:
-            score, order = simulated_annealing(padded, G, grid, evaluation, seed=i + 1)
+            score, order = simulated_annealing(
+                padded, G, grid, evaluation, seed=i + 1,
+                eval_kwargs={'tag_groups': tag_groups},
+            )
         violations = sum(
             1 for (a, b) in G.edges
             if a in order and b in order
@@ -561,10 +585,14 @@ def compute_best_order(data) -> dict:
     rows, cols = HexGrid.bestCount(len(strings))
     padded = strings + ['___'] * (rows * cols - len(strings))
     grid = HexGrid(50, rows, cols)
+    tag_groups = get_parts_from_data(data, G)
     _ensure_results_folder()
     score, order = ilp_layout(padded, G, grid, time_limit=25)
     if order is None:
-        _, order = simulated_annealing(padded, G, grid, evaluation, seed=1)
+        _, order = simulated_annealing(
+            padded, G, grid, evaluation, seed=1,
+            eval_kwargs={'tag_groups': tag_groups},
+        )
     return {'order': order, 'rows': rows, 'cols': cols}
 
 
@@ -707,7 +735,7 @@ def draw_skill_tree(skills, G, grid, config, skill_states=None,
                 style = sec
 
             skill_id = re.sub(r'[^a-zA-Z0-9]', '_', element)
-            g_kwargs = {'opacity': '0.30'} if state == 'locked' else {}
+            g_kwargs = {'opacity': '0.35'} if state == 'locked' else {}
             g_elem = dwg.g(id='hex-' + skill_id, **g_kwargs)
             hex_attr_map[skill_id] = (element, state)
             draw_hexagon(dwg, x, y, grid, element, style, config,

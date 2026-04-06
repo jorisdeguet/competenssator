@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}{{ student.display_name }} — {{ cls.name }}{% endblock %}
+{% block topbar_title %} {{ student.display_name }} — {{ cls.name }}{% endblock %}
 
 {% block content %}
 <!-- Breadcrumb -->
@@ -11,7 +12,6 @@
         › <a class="has-text-grey" href="{{ url_for('teacher_class_detail', class_id=cls.id) }}">{{ cls.name }}</a>
         › <a class="has-text-grey" href="{{ url_for('teacher_group_detail', class_id=cls.id, group_id=group.id) }}">{{ group.name }}</a>
       </p>
-      <h1 class="title is-3 mb-0">{{ student.display_name }}</h1>
     </div>
   </div>
   <div class="level-right">
@@ -57,20 +57,9 @@
 
   <!-- Right: claim history + QR code -->
   <div class="column is-4">
-
-    <!-- QR / code -->
-    <div class="box mb-4 has-text-centered">
-      <p class="heading mb-1">Code de connexion</p>
-      <p style="font-family:monospace; font-size:1.8rem; font-weight:900; letter-spacing:6px; color:#111;">
-        {{ student.code }}
-      </p>
-      <img src="data:image/png;base64,{{ qr_data }}" alt="QR"
-           style="width:110px; height:110px; margin:.5rem auto; display:block; border:3px solid #111; border-radius:6px;">
-    </div>
-
     <!-- Claim history -->
     <div class="box">
-      <h2 class="title is-6 mb-3">Historique des compétences</h2>
+      <h2 class="title is-6 mb-3">Compétences</h2>
 
       {% if claim_list %}
       {% for claim in claim_list %}
@@ -93,21 +82,6 @@
             — <em>{{ claim.teacher_note }}</em>
           {% endif %}
         </p>
-        {% if claim.status == 'claimed' %}
-        <form method="POST" action="{{ url_for('teacher_validate') }}" class="mt-2">
-          <input type="hidden" name="claim_id" value="{{ claim.id }}">
-          <input type="hidden" name="next" value="{{ request.url }}">
-          <div class="field mb-1">
-            <textarea class="textarea is-small" name="note" rows="2"
-                      placeholder="Note optionnelle — ex : « Très bonne attention aux détails là-dessus. »"
-                      style="font-size:.75rem;"></textarea>
-          </div>
-          <div class="buttons are-small">
-            <button class="button is-success is-small" type="submit" name="action" value="validate">✓ Valider</button>
-            <button class="button is-danger is-light is-small" type="submit" name="action" value="reject">✗ Refuser</button>
-          </div>
-        </form>
-        {% endif %}
       </div>
       {% endfor %}
       {% else %}
@@ -115,6 +89,133 @@
       {% endif %}
     </div>
 
+    <p class="has-text-grey mt-3" style="font-size:.8rem;">
+      💡 Clique sur une compétence dans l'arbre pour la valider, la refuser ou la valider directement.
+    </p>
+
   </div>
 </div>
+
+<!-- ── Validation modal ── -->
+<div id="validate-modal" class="modal">
+  <div class="modal-background" onclick="closeModal()"></div>
+  <div class="modal-card" style="width:420px; max-width:95vw;">
+    <header class="modal-card-head" style="background:#111; border-bottom:none;">
+      <p class="modal-card-title" style="color:#fff; font-size:1rem;" id="modal-skill-title">Compétence</p>
+      <button class="delete" aria-label="close" onclick="closeModal()"></button>
+    </header>
+    <section class="modal-card-body" style="padding:1.25rem;">
+
+      <!-- Validate/reject a pending claim -->
+      <form id="modal-form-validate" method="POST" action="{{ url_for('teacher_validate') }}" style="display:none;">
+        <input type="hidden" name="claim_id" id="modal-claim-id" value="">
+        <input type="hidden" name="next" value="{{ request.url }}">
+        <div class="field mb-3">
+          <label class="label is-small">Note (optionnelle)</label>
+          <textarea class="textarea is-small" name="note" rows="3"
+                    placeholder="ex : « Très bonne attention aux détails là-dessus. »"></textarea>
+        </div>
+        <div class="buttons">
+          <button class="button is-success" type="submit" name="action" value="validate">✓ Valider</button>
+          <button class="button is-danger is-light" type="submit" name="action" value="reject">✗ Refuser</button>
+          <button class="button is-light" type="button" onclick="closeModal()">Annuler</button>
+        </div>
+      </form>
+
+      <!-- Direct validate (no prior claim) -->
+      <form id="modal-form-direct" method="POST" action="{{ url_for('teacher_direct_validate') }}" style="display:none;">
+        <input type="hidden" name="class_id" value="{{ cls.id }}">
+        <input type="hidden" name="student_id" value="{{ student.id }}">
+        <input type="hidden" name="skill_name" id="modal-direct-skill" value="">
+        <input type="hidden" name="next" value="{{ request.url }}">
+        <p id="modal-direct-hint" class="has-text-grey mb-3" style="font-size:.85rem;"></p>
+        <div class="field mb-3">
+          <label class="label is-small">Note (optionnelle)</label>
+          <textarea class="textarea is-small" name="note" rows="3"
+                    placeholder="ex : « Très bonne attention aux détails là-dessus. »"></textarea>
+        </div>
+        <div class="buttons">
+          <button class="button is-success" type="submit">✓ Valider directement</button>
+          <button class="button is-light" type="button" onclick="closeModal()">Annuler</button>
+        </div>
+      </form>
+
+      <!-- Validated — show note only -->
+      <div id="modal-info-validated" style="display:none;">
+        <p class="has-text-success mb-2" style="font-weight:600;">✅ Compétence déjà validée.</p>
+        <p id="modal-validated-note" class="has-text-grey" style="font-size:.9rem;"></p>
+        <button class="button is-light mt-3" type="button" onclick="closeModal()">Fermer</button>
+      </div>
+
+    </section>
+  </div>
+</div>
+
+<script>
+// Build a map of skill → claim info from server data
+var claimData = {
+  {% for claim in claim_list %}
+  {{ claim.skill_name | tojson }}: {
+    status: {{ claim.status | tojson }},
+    claimId: {{ claim.id }},
+    note: {{ (claim.teacher_note or '') | tojson }},
+  },
+  {% endfor %}
+};
+var skillStates = {
+  {% for skill, state in skill_states.items() %}
+  {{ skill | tojson }}: {{ state | tojson }},
+  {% endfor %}
+};
+
+function openModal(skillName) {
+  var state = skillStates[skillName] || 'locked';
+  var claim = claimData[skillName];
+
+  document.getElementById('modal-skill-title').textContent = skillName;
+  document.getElementById('modal-form-validate').style.display = 'none';
+  document.getElementById('modal-form-direct').style.display   = 'none';
+  document.getElementById('modal-info-validated').style.display = 'none';
+
+  if (state === 'validated') {
+    var noteEl = document.getElementById('modal-validated-note');
+    noteEl.textContent = claim && claim.note ? '« ' + claim.note + ' »' : '';
+    document.getElementById('modal-info-validated').style.display = 'block';
+
+  } else if (state === 'claimed') {
+    document.getElementById('modal-claim-id').value = claim.claimId;
+    // Reset textarea
+    document.getElementById('modal-form-validate').querySelector('textarea').value = '';
+    document.getElementById('modal-form-validate').style.display = 'block';
+
+  } else {
+    // available or locked — direct validate
+    document.getElementById('modal-direct-skill').value = skillName;
+    document.getElementById('modal-direct-hint').textContent =
+      state === 'locked'
+        ? '⚠️ Compétence verrouillée (prérequis non atteints). Vous pouvez quand même la valider directement.'
+        : 'Compétence disponible — validation directe sans soumission de l\'étudiant·e.';
+    document.getElementById('modal-form-direct').querySelector('textarea').value = '';
+    document.getElementById('modal-form-direct').style.display = 'block';
+  }
+
+  document.getElementById('validate-modal').classList.add('is-active');
+}
+
+function closeModal() {
+  document.getElementById('validate-modal').classList.remove('is-active');
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.hex-group').forEach(function (group) {
+    var state = group.getAttribute('data-state');
+    if (state !== 'validated') {
+      group.style.cursor = 'pointer';
+    }
+    group.addEventListener('click', function () {
+      openModal(this.getAttribute('data-skill'));
+    });
+  });
+});
+</script>
 {% endblock %}

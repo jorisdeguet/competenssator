@@ -1,99 +1,151 @@
 {% extends "base.html" %}
 {% block title %}{{ cls.name }} — Mon arbre{% endblock %}
+{% block topbar_title %} {{ cls.name }} <span class="tag {{ level[1] }}" style="font-size:.75rem; vertical-align:middle; margin-left:.5rem;">{{ level[0] }}</span>{% endblock %}
 
 {% block content %}
-<!-- Header -->
-<div class="level mb-3">
-  <div class="level-left">
-    <div>
-      <h1 class="title is-3 mb-1">{{ cls.name }}</h1>
-      <a class="has-text-grey" href="{{ url_for('dashboard') }}">← Tableau de bord</a>
+<!-- New teacher notifications (ephemeral highlight) -->
+{% if new_notifications %}
+<div class="notification is-info is-light mb-4" style="position:relative;">
+  <button class="delete" onclick="this.parentElement.remove()"></button>
+  <strong>🔔 Nouvelles réponses de ton enseignant·e !</strong>
+  <ul class="mt-2">
+    {% for c in new_notifications %}
+    <li>
+      {% if c.status == 'validated' %}✅{% else %}❌{% endif %}
+      <strong>{{ c.skill_name }}</strong>
+      {% if c.teacher_note %}— <em>« {{ c.teacher_note }} »</em>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+
+
+<!-- Two-column layout -->
+<div class="columns is-variable is-5">
+
+  <!-- Left (8): skill tree -->
+  <div class="column is-8">
+    <!-- Progress bar -->
+    <div class="box mb-4" style="padding:1rem 1.25rem;">
+      <div class="level mb-2">
+        <div class="level-left">
+          <span class="progress-label">🏆 {{ validated_count }} / {{ total }} compétences validées</span>
+        </div>
+        <div class="level-right">
+          <span class="has-text-grey">{{ progress }}%</span>
+        </div>
+      </div>
+      <progress class="progress {{ 'is-success' if progress >= 66 else ('is-info' if progress >= 33 else 'is-warning') }}"
+                value="{{ progress }}" max="100">{{ progress }}%</progress>
     </div>
-  </div>
-  <div class="level-right">
-    <span class="tag {{ level[1] }} is-medium" style="font-size:.9rem; padding:.5rem 1rem;">
-      {{ level[0] }}
-    </span>
-  </div>
-</div>
 
-<!-- Progress bar -->
-<div class="box mb-4" style="padding:1rem 1.25rem;">
-  <div class="level mb-2">
-    <div class="level-left">
-      <span class="progress-label">🏆 {{ validated_count }} / {{ total }} compétences validées</span>
+    <!-- Legend -->
+    <div class="skill-legend mb-3">
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#d0d0d0; border-color:#999;"></div>
+        <span class="has-text-grey">Verrouillée</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#f0f0f0; border-color:#555;"></div>
+        <span>Disponible <em>(clique pour déclarer !)</em></span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#FFD700; border-color:#b8860b;"></div>
+        <span>En attente</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#4CAF50; border-color:#2E7D32;"></div>
+        <span>✓ Validée</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#FF6B6B; border-color:#b71c1c;"></div>
+        <span>Refusée</span>
+      </div>
     </div>
-    <div class="level-right">
-      <span class="has-text-grey">{{ progress }}%</span>
+
+    <!-- Skill tree SVG -->
+    <div class="svg-wrapper mb-4">
+      {{ svg | safe }}
     </div>
-  </div>
-  <progress class="progress {{ 'is-success' if progress >= 66 else ('is-info' if progress >= 33 else 'is-warning') }}"
-            value="{{ progress }}" max="100">{{ progress }}%</progress>
-</div>
 
-<!-- Legend -->
-<div class="skill-legend mb-3">
-  <div class="legend-item">
-    <div class="legend-dot" style="background:#d0d0d0; border-color:#999;"></div>
-    <span class="has-text-grey">Verrouillée</span>
-  </div>
-  <div class="legend-item">
-    <div class="legend-dot" style="background:#f0f0f0; border-color:#555;"></div>
-    <span>Disponible <em>(clique pour déclarer !)</em></span>
-  </div>
-  <div class="legend-item">
-    <div class="legend-dot" style="background:#FFD700; border-color:#b8860b;"></div>
-    <span>En attente de validation</span>
-  </div>
-  <div class="legend-item">
-    <div class="legend-dot" style="background:#4CAF50; border-color:#2E7D32;"></div>
-    <span>✓ Validée</span>
-  </div>
-  <div class="legend-item">
-    <div class="legend-dot" style="background:#FF6B6B; border-color:#b71c1c;"></div>
-    <span>Refusée <em>(clique pour re-soumettre)</em></span>
-  </div>
-</div>
+    <!-- Cross-skill links -->
+    {% if cross_link_info %}
+    <div class="box mb-4">
+      <h2 class="title is-6 mb-2">🔗 Compétences liées dans d'autres classes</h2>
+      <table class="table is-fullwidth is-narrow is-striped">
+        <thead>
+          <tr><th>Classe</th><th>Prérequis</th><th>→ Ici</th><th>Statut</th></tr>
+        </thead>
+        <tbody>
+          {% for item in cross_link_info %}
+          <tr>
+            <td>{{ item.link.source_class.name }}</td>
+            <td><code>{{ item.link.source_skill }}</code></td>
+            <td><code>{{ item.link.target_skill }}</code></td>
+            <td>
+              {% if item.source_validated %}
+              <span class="tag" style="background:#e8f5e9; color:#2e7d32;">✓ Validée</span>
+              {% else %}
+              <span class="tag is-light">Non validée</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
 
-<!-- Skill tree SVG -->
-<div class="svg-wrapper mb-4">
-  {{ svg | safe }}
-</div>
+  </div>
 
-<!-- Cross-skill link info -->
-{% if cross_link_info %}
-<div class="box mb-4">
-  <h2 class="title is-6 mb-2">🔗 Compétences liées dans d'autres classes</h2>
-  <table class="table is-fullwidth is-narrow is-striped">
-    <thead>
-      <tr><th>Classe</th><th>Compétence prérequise</th><th>→ Compétence ici</th><th>Statut</th></tr>
-    </thead>
-    <tbody>
-      {% for item in cross_link_info %}
-      <tr>
-        <td>{{ item.link.source_class.name }}</td>
-        <td><code>{{ item.link.source_skill }}</code></td>
-        <td><code>{{ item.link.target_skill }}</code></td>
-        <td>
-          {% if item.source_validated %}
-          <span class="tag" style="background:#e8f5e9; color:#2e7d32;">✓ Validée</span>
-          {% else %}
-          <span class="tag is-light">Non validée</span>
-          {% endif %}
-        </td>
-      </tr>
+  <!-- Right (4): pending + notes history -->
+  <div class="column is-4">
+
+    {% set pending = skill_states.values() | list | select('equalto', 'claimed') | list | length %}
+    {% if pending > 0 %}
+    <div class="notification is-warning is-light mb-4">
+      ⏳ {{ pending }} compétence{{ 's' if pending != 1 }} en attente de validation.
+    </div>
+    {% endif %}
+
+    <!-- Notes history from teacher -->
+    {% if history_claims %}
+    <div class="box">
+      <h2 class="title is-6 mb-3">📝 Notes de ton enseignant·e</h2>
+      {% for c in history_claims %}
+      <div class="mb-3 pb-3" style="{% if not loop.last %}border-bottom:1px solid #f0f0f0;{% endif %}">
+        <div class="level mb-1" style="align-items:flex-start;">
+          <div class="level-left" style="flex-shrink:1; min-width:0;">
+            <strong style="font-size:.9rem;">{{ c.skill_name }}</strong>
+          </div>
+          <div class="level-right" style="flex-shrink:0; margin-left:.5rem;">
+            {% if c.status == 'validated' %}
+            <span class="tag" style="background:#e8f5e9;color:#2e7d32;font-size:.7rem;">✅ Validée</span>
+            {% else %}
+            <span class="tag" style="background:#ffebee;color:#b71c1c;font-size:.7rem;">❌ Refusée</span>
+            {% endif %}
+          </div>
+        </div>
+        {% if c.teacher_note %}
+        <p style="font-size:.85rem; color:#444;"><em>« {{ c.teacher_note }} »</em></p>
+        {% endif %}
+        <p class="has-text-grey" style="font-size:.75rem; margin-top:.25rem;">
+          {{ c.validated_at.strftime('%d/%m/%Y') if c.validated_at else '—' }}
+        </p>
+      </div>
       {% endfor %}
-    </tbody>
-  </table>
-</div>
-{% endif %}
+    </div>
+    {% else %}
+    <div class="box has-text-grey has-text-centered" style="font-size:.9rem; padding:2rem 1rem;">
+      <p>📭</p>
+      <p>Aucune note de ton enseignant·e pour l'instant.</p>
+    </div>
+    {% endif %}
 
-{% set pending = skill_states.values() | list | select('equalto', 'claimed') | list | length %}
-{% if pending > 0 %}
-<div class="notification is-warning is-light">
-  ⏳ Tu as {{ pending }} compétence{{ 's' if pending != 1 }} en attente de validation.
+  </div>
 </div>
-{% endif %}
 
 <!-- Hidden form for claiming a skill -->
 <form id="claim-form" method="POST" action="{{ url_for('student_claim') }}" style="display:none;">
@@ -108,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function () {
     group.style.cursor = (state === 'available' || state === 'rejected') ? 'pointer' : 'default';
     if (state === 'locked') {
       group.style.cursor = 'not-allowed';
-      group.style.opacity = '0.75';
+      group.style.opacity = '0.35';
     }
     if (state === 'available' || state === 'rejected') {
       group.addEventListener('click', function () {

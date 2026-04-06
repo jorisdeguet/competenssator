@@ -30,7 +30,9 @@
         <div class="tags">
           <span class="tag is-light">👤 {{ item.students }} apprenant{{ 's' if item.students != 1 }}</span>
           {% if item.pending > 0 %}
-          <span class="tag is-warning">⏳ {{ item.pending }} à valider</span>
+          <span class="tag {% if item.unread > 0 %}is-danger{% else %}is-warning{% endif %}">
+            ⏳ {{ item.pending }} à valider{% if item.unread > 0 %} — {{ item.unread }} nouveau{{ 'x' if item.unread > 1 }}{% endif %}
+          </span>
           {% else %}
           <span class="tag" style="background:#e8f5e9; color:#2e7d32;">✓ Tout validé</span>
           {% endif %}

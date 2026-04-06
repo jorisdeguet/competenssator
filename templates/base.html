@@ -46,6 +46,7 @@
       font-size: 1.5rem;
       line-height: 1;
       border-radius: 4px;
+      position: relative;
     }
     .hamburger-btn:hover { background: #333; }
 
@@ -151,10 +152,15 @@
 <!-- Top bar -->
 <div class="topbar">
   <a class="topbar-brand" href="{{ url_for('dashboard') }}">
-    ⬡ Competenssator
+    ⬡{% block topbar_title %} Competenssator{% endblock %}
   </a>
-  <button class="hamburger-btn" onclick="openDrawer()" aria-label="Menu">☰</button>
-</div>
+  <button class="hamburger-btn" onclick="openDrawer()" aria-label="Menu">
+    ☰
+    {% if unread_count > 0 %}
+    <span style="position:absolute;top:6px;right:6px;width:10px;height:10px;
+                 background:#e53935;border-radius:50%;display:inline-block;"></span>
+    {% endif %}
+  </button></div>
 {% endif %}
 
 {% if session.get('user_name') %}
@@ -167,10 +173,28 @@
   </div>
   <nav class="drawer-nav">
     <a href="{{ url_for('dashboard') }}">🏠 Accueil</a>
-    <hr class="drawer-divider">
     <a href="{{ url_for('teacher_class_new') }}">➕ Nouvelle classe</a>
     <a href="{{ url_for('join') }}">🔗 Rejoindre un groupe</a>
     <hr class="drawer-divider">
+
+    {# ── Notifications section ── #}
+    {% if student_notifications or teacher_notifications %}
+    <div style="padding:.4rem 1.25rem .1rem; color:#aaa; font-size:.75rem; letter-spacing:.08em; text-transform:uppercase; font-weight:700;">
+      🔔 Notifications
+    </div>
+    {% for c in teacher_notifications %}
+    <a href="{{ url_for('teacher_class_detail', class_id=c.class_id) }}" style="font-size:.85rem; padding:.5rem 1.25rem; border-left: 3px solid #e53935;">
+      <span>📥 <strong>{{ c.student.name }}</strong> : {{ c.skill_name[:30] }}{% if c.skill_name|length > 30 %}…{% endif %}</span>
+    </a>
+    {% endfor %}
+    {% for c in student_notifications %}
+    <a href="{{ url_for('student_class_view', class_id=c.class_id) }}" style="font-size:.85rem; padding:.5rem 1.25rem; border-left: 3px solid {{ '#e53935' if c.status == 'rejected' else '#1976d2' }};">
+      <span>{{ '✅' if c.status == 'validated' else '❌' }} <strong>{{ c.skill_name[:30] }}{% if c.skill_name|length > 30 %}…{% endif %}</strong>{% if c.teacher_note %} — <em style="color:#aaa;">{{ c.teacher_note[:40] }}{% if c.teacher_note|length > 40 %}…{% endif %}</em>{% endif %}</span>
+    </a>
+    {% endfor %}
+    <hr class="drawer-divider">
+    {% endif %}
+
     <a href="{{ url_for('logout') }}" class="drawer-danger">⏻ Déconnexion</a>
   </nav>
 </div>

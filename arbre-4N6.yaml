@@ -1,67 +1,51 @@
-config:
-  blackAndWhite: true
-  withTickBox: true
-
-sections:
-  - name: "Interface Compose"
-    skills:
-      - "Compose révision"
-      - "Compose Scaffold"
-  - name: "Réseau Retrofit"
-    skills:
-      - "Retrofit base"
-      - "Retrofit appels GET"
-      - "Retrofit POST et corps"
-      - "Retrofit objets JSON"
-      - "Retrofit sync et async"
-      - "Retrofit cookies"
-      - "Retrofit erreurs"
-      - "Retrofit attente"
-  - name: "Backend Spring Boot"
-    skills:
-      - "Spring Boot base"
-      - "Spring Boot Contrôleur"
-      - "Spring Boot service + BD"
-  - name: "Cybersécurité"
-    skills:
-      - "Cybersec injections"
-      - "Cybersec contrôle d'accès"
-  - name: "IA & Outils"
-    skills:
-      - "IA, plugin IDE"
-      - "IA, choix modèle"
-      - "IA, client CLI"
-      - "Outils débogueur"
-      - "Outils Network Inspector"
-      - "Outils Logcat"
-
 skills:
   - name: "Compose révision"
+    tags: ["Compose"]
     sequels: ["Compose Scaffold"]
   - name: "Compose Scaffold"
+    tags: ["Compose"]
   - name: "Retrofit base"
+    tags: ["Réseau"]
     sequels: ["Retrofit cookies", "Retrofit sync et async", "Retrofit objets JSON", "Retrofit appels GET"]
   - name: "Retrofit appels GET"
+    tags: ["Réseau"]
     sequels: ["Retrofit POST et corps"]
   - name: "Retrofit objets JSON"
+    tags: ["Réseau"]
   - name: "Retrofit POST et corps"
+    tags: ["Réseau"]
   - name: "Retrofit sync et async"
+    tags: ["Réseau"]
     sequels: ["Retrofit cookies", "Retrofit erreurs", "Retrofit attente"]
   - name: "Retrofit cookies"
+    tags: ["Réseau"]
   - name: "Retrofit erreurs"
+    tags: ["Réseau"]
   - name: "Retrofit attente"
+    tags: ["Réseau"]
   - name: "Spring Boot base"
+    tags: ["Backend"]
     sequels: ["Spring Boot Contrôleur"]
   - name: "Spring Boot Contrôleur"
+    tags: ["Backend"]
     sequels: ["Spring Boot service + BD"]
   - name: "Spring Boot service + BD"
+    tags: ["Backend"]
   - name: "Cybersec injections"
+    tags: ["Cybersec"]
     sequels: ["Cybersec contrôle d'accès"]
   - name: "Cybersec contrôle d'accès"
+    tags: ["Cybersec"]
   - name: "IA, plugin IDE"
+    tags: ["IA"]
     sequels: ["IA, choix modèle", "IA, client CLI"]
   - name: "IA, choix modèle"
+    tags: ["IA"]
   - name: "IA, client CLI"
+    tags: ["IA"]
   - name: "Outils débogueur"
+    tags: ["Outils"]
   - name: "Outils Network Inspector"
+    tags: ["Outils"]
   - name: "Outils Logcat"
+    tags: ["Outils"]

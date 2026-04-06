@@ -100,6 +100,10 @@ class SkillClaim(db.Model):
     claimed_at = db.Column(db.DateTime, default=datetime.utcnow)
     validated_at = db.Column(db.DateTime, nullable=True)
     teacher_note = db.Column(db.Text, nullable=True)
+    # False until the student sees the outcome of the validation
+    student_notified = db.Column(db.Boolean, nullable=False, default=True)
+    # False until the teacher sees the claim (set when student submits)
+    teacher_notified = db.Column(db.Boolean, nullable=False, default=True)
 
     student = db.relationship('User', back_populates='claims',
                               foreign_keys=[student_id])

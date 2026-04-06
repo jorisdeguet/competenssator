@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% block title %}{{ group.name }} — {{ cls.name }}{% endblock %}
+{% block topbar_title %} {{ group.name }} — {{ cls.name }}{% endblock %}
 
 {% block content %}
 <div class="level mb-4">
   <div class="level-left">
     <div>
-      <h1 class="title is-3">{{ group.name }}</h1>
       <a class="has-text-grey" href="{{ url_for('teacher_class_detail', class_id=cls.id) }}">
         ← {{ cls.name }}
       </a>
@@ -46,6 +46,54 @@
   <!-- Right: invite + bulk add + student list -->
   <div class="column is-5">
 
+
+    <!-- Student list -->
+    <div class="box">
+      <h2 class="title is-6 mb-2">👤 Élèves
+        <span class="tag is-light ml-1">{{ students|length }}</span>
+      </h2>
+      {% if students %}
+      <table class="table is-fullwidth is-striped is-narrow">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Code</th>
+            <th style="text-align:right;">✓&nbsp;/&nbsp;⏳&nbsp;/&nbsp;∑</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for student in students %}
+          {% set st = per_student_stats[student.id] %}
+          <tr>
+            <td>
+              <a href="{{ url_for('teacher_student_progress', class_id=cls.id, group_id=group.id, student_id=student.id) }}"
+                 class="has-text-weight-semibold" style="text-decoration:none; color:#111;">
+                {{ student.display_name }}
+              </a>
+            </td>
+            <td><code>{{ student.code }}</code></td>
+            <td style="text-align:right; white-space:nowrap;">
+              <span style="color:#2e7d32; font-weight:700;">{{ st.validated }}</span>
+              <span class="has-text-grey">&nbsp;/&nbsp;</span>
+              <span style="color:#b8860b; font-weight:700;">{{ st.claimed }}</span>
+              <span class="has-text-grey">&nbsp;/&nbsp;{{ st.total }}</span>
+            </td>
+            <td>
+              <a class="button is-small is-dark is-light"
+                 href="{{ url_for('teacher_student_progress', class_id=cls.id, group_id=group.id, student_id=student.id) }}">
+                Voir →
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <p class="has-text-grey">Aucun élève encore inscrit.</p>
+      {% endif %}
+    </div>
+
     <!-- Invite code + QR -->
     <div class="box mb-4 has-text-centered">
       <p class="heading mb-1">Code d'invitation</p>
@@ -72,38 +120,6 @@
       </form>
     </div>
 
-    <!-- Student list -->
-    <div class="box">
-      <h2 class="title is-6 mb-2">👤 Élèves
-        <span class="tag is-light ml-1">{{ students|length }}</span>
-      </h2>
-      {% if students %}
-      <table class="table is-fullwidth is-striped is-narrow">
-        <thead><tr><th>Nom</th><th>Code</th><th>Progression</th></tr></thead>
-        <tbody>
-          {% for student in students %}
-          <tr>
-            <td>
-              <a href="{{ url_for('teacher_student_progress', class_id=cls.id, group_id=group.id, student_id=student.id) }}"
-                 class="has-text-weight-semibold" style="text-decoration:none; color:#111;">
-                {{ student.display_name }}
-              </a>
-            </td>
-            <td><code>{{ student.code }}</code></td>
-            <td>
-              <a class="button is-small is-dark is-light"
-                 href="{{ url_for('teacher_student_progress', class_id=cls.id, group_id=group.id, student_id=student.id) }}">
-                Voir →
-              </a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-        <p class="has-text-grey">Aucun élève encore inscrit.</p>
-      {% endif %}
-    </div>
 
   </div>
 </div>

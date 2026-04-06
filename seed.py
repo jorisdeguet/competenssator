@@ -131,7 +131,7 @@ def main():
             yaml_content=YAML_3N5.strip(),
         )
         cls_4n6 = Class(
-            name='4N6 — Client-serveur mobile (Flutter)',
+            name='4N6 — Client-serveur mobile',
             teacher_id=joris.id,
             yaml_content=YAML_4N6.strip(),
         )
