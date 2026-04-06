@@ -6,7 +6,7 @@
 {% if new_claims %}
 <div class="notification is-warning is-light mb-4" style="position:relative;">
   <button class="delete" onclick="this.parentElement.remove()"></button>
-  <strong>🔔 {{ new_claims|length }} nouvelle{{ 's' if new_claims|length > 1 }} compétence{{ 's' if new_claims|length > 1 }} soumise{{ 's' if new_claims|length > 1 }} !</strong>
+  <strong>🔔 {{ new_claims|length }} {{ t('cls.new_claims_notif') if new_claims|length == 1 else t('cls.new_claims_notif_pl') }}</strong>
   <ul class="mt-1">
     {% for c in new_claims %}
     <li>
@@ -23,16 +23,16 @@
 <div class="level mb-3">
   <div class="level-left">
     <div>
-      <a class="has-text-grey" href="{{ url_for('dashboard') }}">← Tableau de bord</a>
+      <a class="has-text-grey" href="{{ url_for('dashboard') }}">{{ t('common.back_dash') }}</a>
     </div>
   </div>
   <div class="level-right">
     <div class="buttons">
       <a class="button is-light" href="{{ url_for('teacher_class_layouts', class_id=cls.id) }}">
-        🗺️ Mise en page
+        {{ t('cls.layout') }}
       </a>
       <a class="button is-light" href="{{ url_for('teacher_class_edit', class_id=cls.id) }}">
-        ✏️ Modifier YAML
+        {{ t('cls.edit_yaml') }}
       </a>
     </div>
   </div>
@@ -40,11 +40,9 @@
 
 {% if adjacency_warnings %}
 <div class="notification is-warning is-light mb-4">
-  <strong>⚠️ Compétences avec trop de voisins</strong> — ces compétences ont plus de 6 liens,
-  ce qui dépasse le maximum d'adjacences possible dans la grille hexagonale.
-  Elles ne pourront pas avoir tous leurs voisins adjacents :
+  <strong>{{ t('cls.adjacency_warn') }}</strong> — {{ t('cls.adjacency_hint') }} :
   {% for w in adjacency_warnings %}
-    <span class="tag is-warning ml-1">{{ w.skill }} ({{ w.neighbors }} voisins)</span>
+    <span class="tag is-warning ml-1">{{ w.skill }} ({{ w.neighbors }} {{ t('cls.neighbors') if w.neighbors == 1 else t('cls.neighbors') }})</span>
   {% endfor %}
 </div>
 {% endif %}
@@ -54,21 +52,19 @@
   <!-- Left: SVG tree -->
   <div class="column is-7">
     <div class="box" style="padding:.75rem;">
-      <p class="heading mb-2">Aperçu de l'arbre</p>
+      <p class="heading mb-2">{{ t('cls.skills_preview') }}</p>
       <div class="svg-wrapper">{{ svg | safe }}</div>
     </div>
 
     <!-- Cross-skill links section -->
     <div class="box mt-4">
-      <h2 class="title is-5 mb-3">🔗 Liens vers d'autres classes</h2>
-      <p class="has-text-grey mb-3" style="font-size:.85rem;">
-        Reliez une compétence de cette classe à une compétence dans une autre classe.
-      </p>
+      <h2 class="title is-5 mb-3">{{ t('cls.links_title') }}</h2>
+      <p class="has-text-grey mb-3" style="font-size:.85rem;">{{ t('cls.links_hint') }}</p>
 
       {% if links_from %}
       <table class="table is-fullwidth is-narrow is-striped mb-3">
         <thead>
-          <tr><th>Compétence ici</th><th>→</th><th>Classe cible</th><th>Compétence cible</th><th></th></tr>
+          <tr><th>{{ t('cls.skill_here') }}</th><th>→</th><th>{{ t('cls.target_class') }}</th><th>{{ t('cls.target_skill') }}</th><th></th></tr>
         </thead>
         <tbody>
           {% for link in links_from %}
@@ -89,10 +85,10 @@
       {% endif %}
 
       {% if links_to %}
-      <p class="heading mb-1">Liens entrants (d'autres classes vers cette classe)</p>
+      <p class="heading mb-1">{{ t('cls.links_incoming') }}</p>
       <table class="table is-fullwidth is-narrow is-striped mb-3">
         <thead>
-          <tr><th>Classe source</th><th>Compétence source</th><th>→</th><th>Compétence ici</th></tr>
+          <tr><th>{{ t('cls.source_class') }}</th><th>{{ t('cls.source_skill_col') }}</th><th>→</th><th>{{ t('cls.skill_here') }}</th></tr>
         </thead>
         <tbody>
           {% for link in links_to %}
@@ -109,16 +105,16 @@
 
       <!-- Add link form -->
       <details>
-        <summary class="has-text-weight-semibold" style="cursor:pointer;">+ Ajouter un lien</summary>
+        <summary class="has-text-weight-semibold" style="cursor:pointer;">{{ t('cls.add_link') }}</summary>
         <form method="POST" action="{{ url_for('teacher_class_link_add', class_id=cls.id) }}" class="mt-3">
           <div class="columns">
             <div class="column">
               <div class="field">
-                <label class="label is-small">Compétence dans cette classe</label>
+                <label class="label is-small">{{ t('cls.source_skill') }}</label>
                 <div class="control">
                   <div class="select is-small is-fullwidth">
                     <select name="source_skill" required>
-                      <option value="">— Choisir —</option>
+                      <option value="">{{ t('cls.choose') }}</option>
                       {% for skill in own_skills %}
                       <option value="{{ skill }}">{{ skill }}</option>
                       {% endfor %}
@@ -129,11 +125,11 @@
             </div>
             <div class="column">
               <div class="field">
-                <label class="label is-small">Classe cible</label>
+                <label class="label is-small">{{ t('cls.target_class') }}</label>
                 <div class="control">
                   <div class="select is-small is-fullwidth">
                     <select name="target_class_id" id="target-class-select" required>
-                      <option value="">— Choisir —</option>
+                      <option value="">{{ t('cls.choose') }}</option>
                       {% for c in all_classes %}
                       <option value="{{ c.id }}">{{ c.name }}</option>
                       {% endfor %}
@@ -144,45 +140,50 @@
             </div>
             <div class="column">
               <div class="field">
-                <label class="label is-small">Compétence cible</label>
+                <label class="label is-small">{{ t('cls.target_skill') }}</label>
                 <div class="control">
                   <div class="select is-small is-fullwidth" id="target-skill-wrapper">
                     <select name="target_skill" id="target-skill-select" required disabled>
-                      <option value="">— Choisir une classe d'abord —</option>
+                      <option value="">{{ t('cls.choose_class_first') }}</option>
                     </select>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <button class="button is-dark is-small" type="submit">Créer le lien</button>
+          <button class="button is-dark is-small" type="submit">{{ t('cls.create_link') }}</button>
         </form>
         <script>
-        document.getElementById('target-class-select').addEventListener('change', function () {
-          var classId = this.value;
-          var sel = document.getElementById('target-skill-select');
-          sel.innerHTML = '<option value="">Chargement…</option>';
-          sel.disabled = true;
-          if (!classId) {
-            sel.innerHTML = '<option value="">— Choisir une classe d\'abord —</option>';
-            return;
-          }
-          fetch('/api/classes/' + classId + '/skills')
-            .then(function (r) { return r.json(); })
-            .then(function (skills) {
-              sel.innerHTML = '<option value="">— Choisir —</option>';
-              skills.forEach(function (s) {
-                var opt = document.createElement('option');
-                opt.value = s;
-                opt.textContent = s;
-                sel.appendChild(opt);
+        (function () {
+          var loadingText   = {{ t('cls.loading')           | tojson }};
+          var errorText     = {{ t('cls.load_error')        | tojson }};
+          var chooseFirst   = {{ t('cls.choose_class_first')| tojson }};
+          var chooseText    = {{ t('cls.choose')            | tojson }};
+          document.getElementById('target-class-select').addEventListener('change', function () {
+            var classId = this.value;
+            var sel = document.getElementById('target-skill-select');
+            sel.innerHTML = '<option value="">' + loadingText + '</option>';
+            sel.disabled = true;
+            if (!classId) {
+              sel.innerHTML = '<option value="">' + chooseFirst + '</option>';
+              return;
+            }
+            fetch('/api/classes/' + classId + '/skills')
+              .then(function (r) { return r.json(); })
+              .then(function (skills) {
+                sel.innerHTML = '<option value="">' + chooseText + '</option>';
+                skills.forEach(function (s) {
+                  var opt = document.createElement('option');
+                  opt.value = s; opt.textContent = s;
+                  sel.appendChild(opt);
+                });
+                sel.disabled = false;
+              })
+              .catch(function () {
+                sel.innerHTML = '<option value="">' + errorText + '</option>';
               });
-              sel.disabled = false;
-            })
-            .catch(function () {
-              sel.innerHTML = '<option value="">Erreur de chargement</option>';
-            });
-        });
+          });
+        })();
         </script>
       </details>
     </div>
@@ -193,7 +194,7 @@
 
     <!-- Pending validations -->
     <div class="box mb-4">
-      <h2 class="title is-5">⏳ En attente de validation
+      <h2 class="title is-5">{{ t('cls.pending') }}
         {% if pending_claims %}
         <span class="tag is-warning ml-2">{{ pending_claims|length }}</span>
         {% endif %}
@@ -209,25 +210,25 @@
               <span>{{ claim.skill_name }}</span>
             </p>
             <p class="has-text-grey" style="font-size:.75rem;">
-              Soumis le {{ claim.claimed_at.strftime('%d/%m/%Y à %H:%M') }}
+              {{ t('cls.submitted') }} {{ claim.claimed_at.strftime('%d/%m/%Y à %H:%M') }}
             </p>
             <form method="POST" action="{{ url_for('teacher_validate') }}" class="mt-2">
               <input type="hidden" name="claim_id" value="{{ claim.id }}">
               <div class="field mb-1">
                 <textarea class="textarea is-small" name="note" rows="2"
-                          placeholder="Note optionnelle — ex : « Très bonne attention aux détails là-dessus. »"
+                          placeholder="{{ t('cls.note_optional') }}"
                           style="font-size:.75rem;"></textarea>
               </div>
               <div class="buttons are-small">
-                <button class="button is-success is-small" type="submit" name="action" value="validate">✓ Valider</button>
-                <button class="button is-danger is-light is-small" type="submit" name="action" value="reject">✗ Refuser</button>
+                <button class="button is-success is-small" type="submit" name="action" value="validate">{{ t('cls.validate') }}</button>
+                <button class="button is-danger is-light is-small" type="submit" name="action" value="reject">{{ t('cls.reject') }}</button>
               </div>
             </form>
           </div>
         </div>
         {% endfor %}
       {% else %}
-        <p class="has-text-grey">Aucune compétence en attente.</p>
+        <p class="has-text-grey">{{ t('cls.no_pending') }}</p>
       {% endif %}
     </div>
 
@@ -235,7 +236,7 @@
     <div class="box">
       <div class="level mb-3">
         <div class="level-left">
-          <h2 class="title is-5 mb-0">👥 Groupes
+          <h2 class="title is-5 mb-0">{{ t('cls.groups') }}
             <span class="tag is-light ml-2">{{ cls.groups|length }}</span>
           </h2>
         </div>
@@ -247,29 +248,29 @@
           <div class="level mb-1">
             <div class="level-left"><strong>{{ group.name }}</strong></div>
             <div class="level-right">
-              <span class="tag is-light">{{ group.enrollments|length }} apprenant{{ 's' if group.enrollments|length != 1 }}</span>
+              <span class="tag is-light">{{ group.enrollments|length }} {{ t('cls.learner') if group.enrollments|length == 1 else t('cls.learners') }}</span>
             </div>
           </div>
-          <p class="has-text-grey" style="font-size:.8rem;">Code : <code>{{ group.invite_code }}</code></p>
+          <p class="has-text-grey" style="font-size:.8rem;">{{ t('cls.code') }} : <code>{{ group.invite_code }}</code></p>
           <a class="button is-small is-dark is-light mt-2"
              href="{{ url_for('teacher_group_detail', class_id=cls.id, group_id=group.id) }}">
-            Gérer →
+            {{ t('dash.manage') }}
           </a>
         </div>
       </div>
       {% else %}
-        <p class="has-text-grey mb-3">Aucun groupe.</p>
+        <p class="has-text-grey mb-3">{{ t('cls.no_groups') }}</p>
       {% endfor %}
 
       <hr>
-      <p class="heading mb-2">Créer un groupe</p>
+      <p class="heading mb-2">{{ t('cls.new_group') }}</p>
       <form method="POST" action="{{ url_for('teacher_group_create', class_id=cls.id) }}">
         <div class="field has-addons">
           <div class="control is-expanded">
-            <input class="input" type="text" name="group_name" placeholder="Ex : Groupe A" required>
+            <input class="input" type="text" name="group_name" placeholder="{{ t('cls.group_name_ph') }}" required>
           </div>
           <div class="control">
-            <button class="button is-dark" type="submit">Créer</button>
+            <button class="button is-dark" type="submit">{{ t('cls.create') }}</button>
           </div>
         </div>
       </form>

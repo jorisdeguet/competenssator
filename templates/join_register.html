@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}Rejoindre — {{ group.cls.name }}{% endblock %}
+{% block title %}{{ t('join.title') }} — {{ group.cls.name }}{% endblock %}
 
 {% block content %}
 <div class="box has-text-centered mb-5" style="border-top: 4px solid #111;">
   <h1 class="title is-3">
-    Groupe <em>{{ group.name }}</em>
+    {{ group.name }}
   </h1>
   <p class="subtitle has-text-grey">{{ group.cls.name }}</p>
 </div>
@@ -13,32 +13,30 @@
 
   <!-- New student -->
   <div class="box mb-4" style="border-left:4px solid #111;">
-    <h2 class="title is-5 mb-3">🎮 Nouveau ? Crée ton compte</h2>
+    <h2 class="title is-5 mb-3">{{ t('join.new_user') }}</h2>
     <form method="POST">
       <input type="hidden" name="action" value="new">
       <div class="field">
-        <label class="label">Ton prénom</label>
+        <label class="label">{{ t('join.your_name') }}</label>
         <div class="control">
           <input class="input" type="text" name="name"
-                 placeholder="Ex : Alice" autofocus>
+                 placeholder="{{ t('auth.name_placeholder') }}" autofocus>
         </div>
       </div>
       <button class="button is-dark is-fullwidth mt-3" type="submit">
-        Créer mon compte et rejoindre →
+        {{ t('join.create_and_join') }}
       </button>
     </form>
   </div>
 
   <!-- Existing student -->
   <div class="box" style="border-left:4px solid #555;">
-    <h2 class="title is-5 mb-3">🔑 Tu as déjà un compte ?</h2>
-    <p class="has-text-grey mb-3" style="font-size:.85rem;">
-      Entre ton code personnel de 8 caractères pour te connecter et rejoindre ce groupe.
-    </p>
+    <h2 class="title is-5 mb-3">{{ t('join.existing_user') }}</h2>
+    <p class="has-text-grey mb-3" style="font-size:.85rem;">{{ t('join.existing_hint') }}</p>
     <form method="POST">
       <input type="hidden" name="action" value="existing">
       <div class="field">
-        <label class="label">Ton code personnel</label>
+        <label class="label">{{ t('join.personal_code_label') }}</label>
         <div class="control">
           <input class="input" type="text" name="personal_code"
                  maxlength="8"
@@ -48,13 +46,13 @@
         </div>
       </div>
       <button class="button is-dark is-fullwidth mt-3" type="submit">
-        Me connecter et rejoindre →
+        {{ t('join.login_and_join') }}
       </button>
     </form>
   </div>
 
   <p class="has-text-centered has-text-grey mt-4">
-    <a href="{{ url_for('join') }}">← Changer de code d'invitation</a>
+    <a href="{{ url_for('join') }}">{{ t('join.change_code') }}</a>
   </p>
 </div>
 {% endblock %}

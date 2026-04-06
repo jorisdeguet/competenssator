@@ -8,7 +8,7 @@
   <div class="level-left">
     <div>
       <p class="has-text-grey" style="font-size:.85rem; margin-bottom:.25rem;">
-        <a class="has-text-grey" href="{{ url_for('dashboard') }}">Tableau de bord</a>
+        <a class="has-text-grey" href="{{ url_for('dashboard') }}">{{ t('prog.breadcrumb_dash') }}</a>
         › <a class="has-text-grey" href="{{ url_for('teacher_class_detail', class_id=cls.id) }}">{{ cls.name }}</a>
         › <a class="has-text-grey" href="{{ url_for('teacher_group_detail', class_id=cls.id, group_id=group.id) }}">{{ group.name }}</a>
       </p>
@@ -31,13 +31,13 @@
       <div class="level mb-2">
         <div class="level-left">
           <span style="font-weight:700; font-size:1.05rem;">
-            🏆 {{ validated_count }} / {{ total }} compétences validées
+            🏆 {{ validated_count }} / {{ total }} {{ t('prog.skill_validated') if validated_count == 1 else t('prog.skills_validated') }}
           </span>
         </div>
         <div class="level-right">
           <div class="tags has-addons">
             {% if claimed_count > 0 %}
-            <span class="tag is-warning">⏳ {{ claimed_count }} en attente</span>
+            <span class="tag is-warning">⏳ {{ claimed_count }} {{ t('prog.pending_tag') }}</span>
             {% endif %}
             <span class="tag is-light has-text-grey">{{ progress }}%</span>
           </div>
@@ -49,7 +49,7 @@
 
     <!-- SVG skill tree -->
     <div class="box" style="padding:.75rem;">
-      <p class="heading mb-2">Arbre de compétences</p>
+      <p class="heading mb-2">{{ t('prog.skill_tree_label') }}</p>
       <div class="svg-wrapper">{{ svg | safe }}</div>
     </div>
 
@@ -59,7 +59,7 @@
   <div class="column is-4">
     <!-- Claim history -->
     <div class="box">
-      <h2 class="title is-6 mb-3">Compétences</h2>
+      <h2 class="title is-6 mb-3">{{ t('prog.skills_label') }}</h2>
 
       {% if claim_list %}
       {% for claim in claim_list %}
@@ -72,11 +72,11 @@
         <p class="mb-0" style="font-size:.88rem; font-weight:600;">{{ claim.skill_name }}</p>
         <p class="has-text-grey mb-0" style="font-size:.75rem;">
           {% if claim.status == 'validated' %}
-            ✓ Validée{% if claim.validated_at %} le {{ claim.validated_at.strftime('%d/%m/%Y') }}{% endif %}
+            {{ t('prog.validated_on') }}{% if claim.validated_at %} {{ claim.validated_at.strftime('%d/%m/%Y') }}{% endif %}
           {% elif claim.status == 'claimed' %}
-            ⏳ Soumise{% if claim.claimed_at %} le {{ claim.claimed_at.strftime('%d/%m/%Y') }}{% endif %}
+            {{ t('prog.submitted_on') }}{% if claim.claimed_at %} {{ claim.claimed_at.strftime('%d/%m/%Y') }}{% endif %}
           {% else %}
-            ✗ Refusée
+            {{ t('prog.rejected_tag') }}
           {% endif %}
           {% if claim.teacher_note %}
             — <em>{{ claim.teacher_note }}</em>
@@ -85,12 +85,12 @@
       </div>
       {% endfor %}
       {% else %}
-        <p class="has-text-grey" style="font-size:.88rem;">Aucune compétence soumise pour l'instant.</p>
+        <p class="has-text-grey" style="font-size:.88rem;">{{ t('prog.no_claims') }}</p>
       {% endif %}
     </div>
 
     <p class="has-text-grey mt-3" style="font-size:.8rem;">
-      💡 Clique sur une compétence dans l'arbre pour la valider, la refuser ou la valider directement.
+      💡 {{ t('prog.click_hint') }}
     </p>
 
   </div>
@@ -111,14 +111,14 @@
         <input type="hidden" name="claim_id" id="modal-claim-id" value="">
         <input type="hidden" name="next" value="{{ request.url }}">
         <div class="field mb-3">
-          <label class="label is-small">Note (optionnelle)</label>
+          <label class="label is-small">{{ t('prog.note_label') }}</label>
           <textarea class="textarea is-small" name="note" rows="3"
-                    placeholder="ex : « Très bonne attention aux détails là-dessus. »"></textarea>
+                    placeholder="{{ t('prog.note_placeholder') }}"></textarea>
         </div>
         <div class="buttons">
-          <button class="button is-success" type="submit" name="action" value="validate">✓ Valider</button>
-          <button class="button is-danger is-light" type="submit" name="action" value="reject">✗ Refuser</button>
-          <button class="button is-light" type="button" onclick="closeModal()">Annuler</button>
+          <button class="button is-success" type="submit" name="action" value="validate">{{ t('cls.validate') }}</button>
+          <button class="button is-danger is-light" type="submit" name="action" value="reject">{{ t('cls.reject') }}</button>
+          <button class="button is-light" type="button" onclick="closeModal()">{{ t('common.cancel') }}</button>
         </div>
       </form>
 
@@ -130,21 +130,21 @@
         <input type="hidden" name="next" value="{{ request.url }}">
         <p id="modal-direct-hint" class="has-text-grey mb-3" style="font-size:.85rem;"></p>
         <div class="field mb-3">
-          <label class="label is-small">Note (optionnelle)</label>
+          <label class="label is-small">{{ t('prog.note_label') }}</label>
           <textarea class="textarea is-small" name="note" rows="3"
-                    placeholder="ex : « Très bonne attention aux détails là-dessus. »"></textarea>
+                    placeholder="{{ t('prog.note_placeholder') }}"></textarea>
         </div>
         <div class="buttons">
-          <button class="button is-success" type="submit">✓ Valider directement</button>
-          <button class="button is-light" type="button" onclick="closeModal()">Annuler</button>
+          <button class="button is-success" type="submit">{{ t('prog.validate_direct') }}</button>
+          <button class="button is-light" type="button" onclick="closeModal()">{{ t('common.cancel') }}</button>
         </div>
       </form>
 
       <!-- Validated — show note only -->
       <div id="modal-info-validated" style="display:none;">
-        <p class="has-text-success mb-2" style="font-weight:600;">✅ Compétence déjà validée.</p>
+        <p class="has-text-success mb-2" style="font-weight:600;">{{ t('prog.already_validated') }}</p>
         <p id="modal-validated-note" class="has-text-grey" style="font-size:.9rem;"></p>
-        <button class="button is-light mt-3" type="button" onclick="closeModal()">Fermer</button>
+        <button class="button is-light mt-3" type="button" onclick="closeModal()">{{ t('common.close') }}</button>
       </div>
 
     </section>
@@ -193,8 +193,8 @@ function openModal(skillName) {
     document.getElementById('modal-direct-skill').value = skillName;
     document.getElementById('modal-direct-hint').textContent =
       state === 'locked'
-        ? '⚠️ Compétence verrouillée (prérequis non atteints). Vous pouvez quand même la valider directement.'
-        : 'Compétence disponible — validation directe sans soumission de l\'étudiant·e.';
+        ? {{ t('prog.locked_hint') | tojson }}
+        : {{ t('prog.direct_hint') | tojson }};
     document.getElementById('modal-form-direct').querySelector('textarea').value = '';
     document.getElementById('modal-form-direct').style.display = 'block';
   }

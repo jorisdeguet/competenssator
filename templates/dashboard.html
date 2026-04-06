@@ -1,22 +1,22 @@
 {% extends "base.html" %}
-{% block title %}Tableau de bord — Competenssator{% endblock %}
+{% block title %}{{ t('dash.title') }} — Competenssator{% endblock %}
 
 {% block content %}
 <div class="level mb-5">
   <div class="level-left">
-    <h1 class="title is-2">Bonjour, {{ user.display_name }} !</h1>
+    <h1 class="title is-2">{{ t('dash.greeting') }}, {{ user.display_name }} !</h1>
   </div>
   <div class="level-right">
     <div class="buttons">
-      <a class="button is-dark" href="{{ url_for('teacher_class_new') }}">+ Nouvelle classe</a>
-      <a class="button is-light" href="{{ url_for('join') }}">Rejoindre un groupe</a>
+      <a class="button is-dark" href="{{ url_for('teacher_class_new') }}">{{ t('dash.new_class') }}</a>
+      <a class="button is-light" href="{{ url_for('join') }}">{{ t('dash.join_btn') }}</a>
     </div>
   </div>
 </div>
 
 {% if owned_info %}
 <h2 class="title is-4 mb-3" style="border-bottom:2px solid #111; padding-bottom:.5rem;">
-  ⬡ Classes que j'enseigne
+  ⬡ {{ t('dash.my_classes') }}
 </h2>
 <div class="columns is-multiline mb-6">
   {% for item in owned_info %}
@@ -25,27 +25,27 @@
       <div class="card-content">
         <h3 class="title is-5 mb-1" style="word-break:break-word; white-space:normal;">{{ item.cls.name }}</h3>
         <p class="has-text-grey mb-3" style="font-size:.82rem;">
-          Créée le {{ item.cls.created_at.strftime('%d/%m/%Y') }}
+          {{ t('dash.created_on') }} {{ item.cls.created_at.strftime('%d/%m/%Y') }}
         </p>
         <div class="tags">
-          <span class="tag is-light">👤 {{ item.students }} apprenant{{ 's' if item.students != 1 }}</span>
+          <span class="tag is-light">👤 {{ item.students }} {{ t('cls.learner') if item.students == 1 else t('cls.learners') }}</span>
           {% if item.pending > 0 %}
           <span class="tag {% if item.unread > 0 %}is-danger{% else %}is-warning{% endif %}">
-            ⏳ {{ item.pending }} à valider{% if item.unread > 0 %} — {{ item.unread }} nouveau{{ 'x' if item.unread > 1 }}{% endif %}
+            ⏳ {{ item.pending }} {{ t('dash.to_validate') }}{% if item.unread > 0 %} — {{ item.unread }} {{ t('dash.new_one') if item.unread == 1 else t('dash.new_many') }}{% endif %}
           </span>
           {% else %}
-          <span class="tag" style="background:#e8f5e9; color:#2e7d32;">✓ Tout validé</span>
+          <span class="tag" style="background:#e8f5e9; color:#2e7d32;">{{ t('dash.all_validated') }}</span>
           {% endif %}
         </div>
       </div>
       <div class="card-footer">
         <a class="card-footer-item has-text-weight-semibold"
            href="{{ url_for('teacher_class_detail', class_id=item.cls.id) }}">
-          Gérer →
+          {{ t('dash.manage') }}
         </a>
         <a class="card-footer-item has-text-grey"
            href="{{ url_for('teacher_class_edit', class_id=item.cls.id) }}">
-          Modifier
+          {{ t('dash.edit') }}
         </a>
       </div>
     </div>
@@ -56,7 +56,7 @@
 
 {% if enrolled_info %}
 <h2 class="title is-4 mb-3" style="border-bottom:2px solid #111; padding-bottom:.5rem;">
-  📚 Mes formations
+  📚 {{ t('dash.my_courses') }}
 </h2>
 <div class="columns is-multiline">
   {% for item in enrolled_info %}
@@ -72,7 +72,7 @@
           </div>
         </div>
         <p class="has-text-grey mb-2" style="font-size:.82rem;">
-          {{ item.validated }} / {{ item.total }} compétence{{ 's' if item.total != 1 }} validée{{ 's' if item.validated != 1 }}
+          {{ item.validated }} / {{ item.total }} {{ t('common.skill') if item.total == 1 else t('common.skills') }} {{ t('dash.validated') if item.validated == 1 else t('dash.validated_pl') }}
         </p>
         <progress class="progress mb-1
           {% if item.progress >= 66 %}is-warning
@@ -84,7 +84,7 @@
       <div class="card-footer">
         <a class="card-footer-item has-text-weight-semibold"
            href="{{ url_for('student_class_view', class_id=item.cls.id) }}">
-          Voir l'arbre →
+          {{ t('dash.see_tree') }}
         </a>
       </div>
     </div>
@@ -96,11 +96,11 @@
 {% if not owned_info and not enrolled_info %}
 <div class="has-text-centered" style="padding:4rem 0;">
   <p style="font-size:3rem; margin-bottom:1rem;">⬡</p>
-  <p class="title is-4 has-text-grey-light">Bienvenue !</p>
-  <p class="has-text-grey mb-4">Créez votre première classe ou rejoignez une formation avec un code d'invitation.</p>
+  <p class="title is-4 has-text-grey-light">{{ t('dash.welcome_title') }}</p>
+  <p class="has-text-grey mb-4">{{ t('dash.welcome_hint') }}</p>
   <div class="buttons is-centered">
-    <a class="button is-dark" href="{{ url_for('teacher_class_new') }}">Créer une classe</a>
-    <a class="button is-light" href="{{ url_for('join') }}">Rejoindre avec un code</a>
+    <a class="button is-dark" href="{{ url_for('teacher_class_new') }}">{{ t('dash.create_class_btn') }}</a>
+    <a class="button is-light" href="{{ url_for('join') }}">{{ t('dash.join_code') }}</a>
   </div>
 </div>
 {% endif %}

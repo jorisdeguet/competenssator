@@ -19,26 +19,26 @@
   <div class="column is-7">
     {% if svg %}
     <div class="box" style="padding:.75rem;">
-      <p class="heading mb-1">Progression du groupe
+      <p class="heading mb-1">{{ t('grp.progress') }}
         <span class="has-text-grey" style="font-weight:normal;">
-          ({{ total }} élève{{ 's' if total != 1 }})
+          ({{ total }} {{ t('common.student') if total == 1 else t('common.students') }})
         </span>
       </p>
 
       <!-- Legend -->
       <div class="skill-legend mb-2" style="flex-wrap:wrap; gap:.4rem .8rem;">
-        <span class="tag" style="background:#a5d6a7; color:#1B5E20;">✓ Tous ont validé</span>
-        <span class="tag is-success is-light">Quelques-uns ont validé</span>
-        <span class="tag is-warning is-light">⏳ En attente</span>
-        <span class="tag is-light">Pas commencé</span>
+        <span class="tag" style="background:#a5d6a7; color:#1B5E20;">✓ {{ lang == 'fr' and 'Tous ont validé' or 'All validated' }}</span>
+        <span class="tag is-success is-light">{{ lang == 'fr' and 'Quelques-uns ont validé' or 'Some validated' }}</span>
+        <span class="tag is-warning is-light">⏳ {{ lang == 'fr' and 'En attente' or 'Pending' }}</span>
+        <span class="tag is-light">{{ lang == 'fr' and 'Pas commencé' or 'Not started' }}</span>
       </div>
 
       <div class="svg-wrapper">{{ svg | safe }}</div>
     </div>
     {% else %}
     <div class="notification is-info is-light">
-      Choisissez d'abord une mise en page pour la classe pour voir les statistiques ici.
-      <a href="{{ url_for('teacher_class_layouts', class_id=cls.id) }}">Choisir →</a>
+      {{ t('grp.choose_layout') }}
+      <a href="{{ url_for('teacher_class_layouts', class_id=cls.id) }}">{{ t('grp.choose_layout_link') }}</a>
     </div>
     {% endif %}
   </div>
@@ -49,15 +49,15 @@
 
     <!-- Student list -->
     <div class="box">
-      <h2 class="title is-6 mb-2">👤 Élèves
+      <h2 class="title is-6 mb-2">👤 {{ t('cls.students') }}
         <span class="tag is-light ml-1">{{ students|length }}</span>
       </h2>
       {% if students %}
       <table class="table is-fullwidth is-striped is-narrow">
         <thead>
           <tr>
-            <th>Nom</th>
-            <th>Code</th>
+            <th>{{ t('cls.name') }}</th>
+            <th>{{ t('cls.code') }}</th>
             <th style="text-align:right;">✓&nbsp;/&nbsp;⏳&nbsp;/&nbsp;∑</th>
             <th></th>
           </tr>
@@ -82,7 +82,7 @@
             <td>
               <a class="button is-small is-dark is-light"
                  href="{{ url_for('teacher_student_progress', class_id=cls.id, group_id=group.id, student_id=student.id) }}">
-                Voir →
+                {{ t('grp.see') }}
               </a>
             </td>
           </tr>
@@ -90,13 +90,13 @@
         </tbody>
       </table>
       {% else %}
-        <p class="has-text-grey">Aucun élève encore inscrit.</p>
+        <p class="has-text-grey">{{ t('cls.no_students') }}</p>
       {% endif %}
     </div>
 
     <!-- Invite code + QR -->
     <div class="box mb-4 has-text-centered">
-      <p class="heading mb-1">Code d'invitation</p>
+      <p class="heading mb-1">{{ t('cls.invite_code') }}</p>
       <p class="title is-2" style="color:#111; letter-spacing:4px; font-family:monospace;">
         {{ group.invite_code }}
       </p>
@@ -109,14 +109,14 @@
 
     <!-- Bulk add -->
     <div class="box mb-4">
-      <h2 class="title is-6 mb-2">➕ Ajouter des élèves en masse</h2>
+      <h2 class="title is-6 mb-2">{{ t('cls.bulk_add') }}</h2>
       <form method="POST"
             action="{{ url_for('teacher_group_bulk_add', class_id=cls.id, group_id=group.id) }}">
         <div class="field">
           <textarea class="textarea is-small" name="names" rows="5"
                     placeholder="Alice&#10;Bob&#10;Charlie" required></textarea>
         </div>
-        <button class="button is-dark is-small" type="submit">Créer les comptes</button>
+        <button class="button is-dark is-small" type="submit">{{ t('cls.bulk_create') }}</button>
       </form>
     </div>
 

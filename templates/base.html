@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ lang }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -172,15 +172,15 @@
     <button class="drawer-close" onclick="closeDrawer()">✕</button>
   </div>
   <nav class="drawer-nav">
-    <a href="{{ url_for('dashboard') }}">🏠 Accueil</a>
-    <a href="{{ url_for('teacher_class_new') }}">➕ Nouvelle classe</a>
-    <a href="{{ url_for('join') }}">🔗 Rejoindre un groupe</a>
+    <a href="{{ url_for('dashboard') }}">🏠 {{ t('nav.home') }}</a>
+    <a href="{{ url_for('teacher_class_new') }}">➕ {{ t('nav.new_class') }}</a>
+    <a href="{{ url_for('join') }}">🔗 {{ t('nav.join') }}</a>
     <hr class="drawer-divider">
 
     {# ── Notifications section ── #}
     {% if student_notifications or teacher_notifications %}
     <div style="padding:.4rem 1.25rem .1rem; color:#aaa; font-size:.75rem; letter-spacing:.08em; text-transform:uppercase; font-weight:700;">
-      🔔 Notifications
+      🔔 {{ t('nav.notifications') }}
     </div>
     {% for c in teacher_notifications %}
     <a href="{{ url_for('teacher_class_detail', class_id=c.class_id) }}" style="font-size:.85rem; padding:.5rem 1.25rem; border-left: 3px solid #e53935;">
@@ -195,7 +195,19 @@
     <hr class="drawer-divider">
     {% endif %}
 
-    <a href="{{ url_for('logout') }}" class="drawer-danger">⏻ Déconnexion</a>
+    {# ── Language toggle ── #}
+    <div style="padding:.5rem 1.25rem; display:flex; align-items:center; gap:.5rem;">
+      <span style="color:#aaa; font-size:.8rem; text-transform:uppercase; letter-spacing:.05em;">🌐</span>
+      <a href="{{ url_for('set_lang', lang='fr') }}"
+         class="button is-small {% if lang == 'fr' %}is-light{% else %}is-ghost{% endif %}"
+         style="color:{% if lang == 'fr' %}#111{% else %}#888{% endif %}; font-weight:{% if lang == 'fr' %}700{% else %}400{% endif %};">FR</a>
+      <a href="{{ url_for('set_lang', lang='en') }}"
+         class="button is-small {% if lang == 'en' %}is-light{% else %}is-ghost{% endif %}"
+         style="color:{% if lang == 'en' %}#111{% else %}#888{% endif %}; font-weight:{% if lang == 'en' %}700{% else %}400{% endif %};">EN</a>
+    </div>
+    <hr class="drawer-divider">
+
+    <a href="{{ url_for('logout') }}" class="drawer-danger">⏻ {{ t('nav.logout') }}</a>
   </nav>
 </div>
 <script>

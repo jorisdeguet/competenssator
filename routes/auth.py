@@ -38,6 +38,12 @@ def register(app):
             return redirect(url_for('dashboard'))
         return render_template('login.html')
 
+    @app.route('/set-lang/<lang>')
+    def set_lang(lang):
+        if lang in ('fr', 'en'):
+            session['lang'] = lang
+        return redirect(request.referrer or url_for('dashboard'))
+
     @app.route('/logout')
     def logout():
         session.clear()

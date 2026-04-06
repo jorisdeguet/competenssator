@@ -21,6 +21,8 @@ db.init_app(app)
 
 @app.context_processor
 def inject_notification_counts():
+    lang = session.get('lang', 'fr')
+    t = get_t(lang)
     user_id = session.get('user_id')
     if not user_id:
         return {
@@ -29,6 +31,8 @@ def inject_notification_counts():
             'teacher_unread_count': 0,
             'student_notifications': [],
             'teacher_notifications': [],
+            't': t,
+            'lang': lang,
         }
 
     # Student: validated/rejected claims not yet seen (up to 10 for the drawer)
@@ -55,6 +59,8 @@ def inject_notification_counts():
         'teacher_unread_count': len(teacher_notifs),
         'student_notifications': student_notifs,
         'teacher_notifications': teacher_notifs,
+        't': t,
+        'lang': lang,
     }
 
 
