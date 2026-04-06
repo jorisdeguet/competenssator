@@ -19,18 +19,28 @@ polkaUrl = ""
 polka2Url = ""
 gradientUrl = ""
 
-# Section colours (colourful, no B&W)
+# Section colours — curated palette (no green/red; used for section fills)
 SECTION_COLORS = [
-    ("black", "aquamarine"),
-    ("black", "lightblue"),
-    ("black", "lightgreen"),
-    ("black", "tomato"),
-    ("black", "lightyellow"),
-    ("black", "lightpink"),
-    ("black", "lightgrey"),
-    ("black", "peachpuff"),
-    ("black", "paleturquoise"),
-    ("black", "lavender"),
+    ("black", "rgb(176,196,222)"),   # Powdered Navy
+    ("black", "rgb(204,214,246)"),   # Periwinkle Wash
+    ("black", "rgb(193,217,237)"),   # Slate Silk
+    ("black", "rgb(217,236,242)"),   # Arctic Mist
+    ("black", "rgb(188,204,219)"),   # Dusk Blue
+    ("black", "rgb(210,191,214)"),   # Soft Amethyst
+    ("black", "rgb(214,203,226)"),   # Dusty Lavender
+    ("black", "rgb(209,202,217)"),   # Lilac Haze
+    ("black", "rgb(216,191,216)"),   # Thistle Cream
+    ("black", "rgb(211,195,208)"),   # Muted Mauve
+    ("black", "rgb(247,231,206)"),   # Champagne
+    ("black", "rgb(255,230,204)"),   # Soft Apricot
+    ("black", "rgb(254,234,184)"),   # Pale Marigold
+    ("black", "rgb(255,218,185)"),   # Peach Cream
+    ("black", "rgb(238,220,185)"),   # Muted Topaz
+    ("black", "rgb(232,236,241)"),   # Cloud Grey
+    ("black", "rgb(229,215,198)"),   # Warm Sand
+    ("black", "rgb(255,253,232)"),   # Pearl White
+    ("black", "rgb(198,204,212)"),   # Steel Grey
+    ("black", "rgb(243,236,224)"),   # Parchment
 ]
 
 # State stroke colours used on top of section fills
@@ -55,6 +65,7 @@ class Style:
         self.fillUrl = fillUrl
         self.stroke_dasharray = 1
         self.number_of_strokes = 1
+        self.fill_opacity = 1.0   # 0.0–1.0; used for faded locked skills
 
 
 class Config:
@@ -199,6 +210,8 @@ def draw_hexagon(dwg, center_x, center_y, grid, text, style, config,
         if style.stroke_dasharray != 1:
             extra['stroke_dasharray'] = (str(style.stroke_dasharray) + ","
                                          + str(style.stroke_dasharray))
+        if style.fill_opacity < 1.0:
+            extra['fill_opacity'] = style.fill_opacity
         container.add(dwg.path(
             d=path,
             fill=style.fillColor if style.fillUrl == "" else style.fillUrl,
@@ -251,11 +264,34 @@ def find_part_containing(element, parts):
     return 0
 
 
+def get_parts_from_data(data, G):
+    """Return skill groups (parts) for colour assignment.
+
+    Uses 'sections' from YAML if present; falls back to connected components.
+    Each part is a set of skill names.
+    """
+    sections = (data or {}).get('sections')
+    if sections:
+        parts = [set(sec.get('skills', [])) for sec in sections if sec.get('skills')]
+        categorized = {s for p in parts for s in p}
+        uncategorized = set(G.nodes) - categorized - {'___'}
+        if uncategorized:
+            parts.append(uncategorized)
+        return parts if parts else [set(G.nodes)]
+    return list(nx.connected_components(G.to_undirected()))
+
+
 # ---------------------------------------------------------------------------
 # Placement evaluation
 # ---------------------------------------------------------------------------
 
 def evaluation(individual, G, grid):
+    """Score a skill placement.
+
+    Primary objective: every connected pair must be hexagonally adjacent.
+    +10 000 per adjacent edge, -(10 000 + 100·d²) per non-adjacent edge.
+    Secondary (tie-breaker): hub nodes near centre, sources near top.
+    """
     asList = list(individual)
     score = 0.0
     center_row = (grid.rowCount - 1) / 2.0
@@ -265,10 +301,10 @@ def evaluation(individual, G, grid):
         ia = asList.index(a)
         ib = asList.index(b)
         if grid.areIndexConnected(ia, ib):
-            score += 40.0
+            score += 10_000.0
         else:
             d = grid.distance(ia, ib)
-            score -= d * d * 12.0
+            score -= 10_000.0 + d * d * 100.0
 
     for node in G.nodes:
         idx = asList.index(node)
@@ -276,36 +312,140 @@ def evaluation(individual, G, grid):
         degree = G.degree(node)
         if degree > 1:
             dist_c = math.sqrt((row - center_row) ** 2 + (col - center_col) ** 2)
-            score -= degree * dist_c * 2.0
+            score -= degree * dist_c * 0.5   # secondary: hubs toward centre
 
     for source in [s for s in G.nodes if G.in_degree(s) == 0]:
-        score -= grid.rowFor(asList.index(source)) * 3.0
+        score -= grid.rowFor(asList.index(source)) * 1.0   # secondary: sources near top
 
     return score
 
 
-def hill_climb(strings, G, grid, eval_fn, seed):
+def get_adjacency_warnings(data) -> list:
+    """Return skills whose unique-neighbour count exceeds 6 (hex-grid limit).
+
+    For each such skill, all its edges *cannot* be adjacent simultaneously.
+    Returns a list of dicts: {'skill': str, 'neighbors': int}.
+    """
+    G = get_graph_from_data(data)
+    warnings = []
+    for node in G.nodes:
+        unique_neighbors = set(G.predecessors(node)) | set(G.successors(node))
+        if len(unique_neighbors) > 6:
+            warnings.append({'skill': node, 'neighbors': len(unique_neighbors)})
+    return warnings
+
+
+def simulated_annealing(strings, G, grid, eval_fn, seed, n_iter=None):
+    """Fallback SA solver used when ILP times out or fails."""
     random.seed(seed)
+    n = len(strings)
+    if n_iter is None:
+        n_iter = max(n * n * 30, 8_000)
     current = strings[:]
     random.shuffle(current)
     current_score = eval_fn(current, G, grid)
-    improved = True
-    while improved:
-        improved = False
-        n = len(current)
-        for a in range(n):
-            for b in range(a + 1, n):
-                candidate = current[:]
-                candidate[a], candidate[b] = candidate[b], candidate[a]
-                s = eval_fn(candidate, G, grid)
-                if s > current_score:
-                    current_score = s
-                    current = candidate
-                    improved = True
-                    break
-            if improved:
+    best = current[:]
+    best_score = current_score
+    n_edges = max(len(G.edges), 1)
+    T0 = float(n_edges * 2_000)
+    Tf = 1.0
+    alpha = (Tf / T0) ** (1.0 / n_iter)
+    T = T0
+    for _ in range(n_iter):
+        a, b = random.sample(range(n), 2)
+        current[a], current[b] = current[b], current[a]
+        s = eval_fn(current, G, grid)
+        delta = s - current_score
+        if delta > 0 or (T > 0 and random.random() < math.exp(max(delta / T, -700))):
+            current_score = s
+            if current_score > best_score:
+                best_score = current_score
+                best = current[:]
+        else:
+            current[a], current[b] = current[b], current[a]
+        T *= alpha
+    return best_score, best
+
+
+def ilp_layout(strings, G, grid, time_limit=25):
+    """ILP-based skill layout using PuLP/CBC.
+
+    Hard adjacency constraint: for every edge (a→b) in G, skills a and b
+    must be placed at hex-adjacent positions.
+
+    If the graph has skills with >6 neighbours (physically infeasible), the
+    solver minimises the number of violated edges instead.
+
+    Returns (score, order) where score = satisfied_edges * 10_000.
+    Returns (None, None) if PuLP is unavailable or CBC fails to find a solution.
+    """
+    try:
+        import pulp
+    except ImportError:
+        return None, None
+
+    real_skills = [s for s in strings if s != '___']
+    M = len(strings)
+    positions = list(range(M))
+    s_idx = {s: i for i, s in enumerate(real_skills)}
+    N = len(real_skills)
+
+    # Precompute adjacency sets: adj_of[p] = list of positions adjacent to p
+    adj_of = {p: [q for q in positions if q != p and grid.areIndexConnected(p, q)]
+              for p in positions}
+
+    edges = [(a, b) for (a, b) in G.edges if a in s_idx and b in s_idx]
+
+    prob = pulp.LpProblem("skill_layout", pulp.LpMinimize)
+
+    # x[i, p] = 1  iff  real_skills[i] is placed at grid position p
+    x = [[pulp.LpVariable(f"x_{i}_{p}", cat='Binary') for p in positions]
+         for i in range(N)]
+
+    # z[e] = 1 iff edge e is violated (endpoints not adjacent)
+    z = [pulp.LpVariable(f"z_{e}", cat='Binary') for e in range(len(edges))]
+
+    # Objective: minimise violations
+    prob += pulp.lpSum(z)
+
+    # Each skill assigned to exactly one position
+    for i in range(N):
+        prob += pulp.lpSum(x[i][p] for p in positions) == 1
+
+    # Each position occupied by at most one skill
+    for p in positions:
+        prob += pulp.lpSum(x[i][p] for i in range(N)) <= 1
+
+    # Adjacency constraints (linearised):
+    # If skill a is at position p, skill b must be at one of adj_of[p] (or z[e]=1)
+    for e, (a, b) in enumerate(edges):
+        ia, ib = s_idx[a], s_idx[b]
+        for p in positions:
+            adj_sum_b = pulp.lpSum(x[ib][q] for q in adj_of[p])
+            prob += x[ia][p] <= z[e] + adj_sum_b
+            adj_sum_a = pulp.lpSum(x[ia][q] for q in adj_of[p])
+            prob += x[ib][p] <= z[e] + adj_sum_a
+
+    solver = pulp.PULP_CBC_CMD(msg=0, timeLimit=time_limit, gapRel=0.0)
+    try:
+        status = prob.solve(solver)
+    except Exception:
+        return None, None
+
+    if pulp.LpStatus[status] not in ('Optimal', 'Feasible'):
+        return None, None
+
+    order = ['___'] * M
+    for i, s in enumerate(real_skills):
+        for p in positions:
+            val = pulp.value(x[i][p])
+            if val is not None and val > 0.5:
+                order[p] = s
                 break
-    return current_score, current
+
+    violations = int(round(sum(pulp.value(z[e]) or 0 for e in range(len(edges)))))
+    score = (len(edges) - violations) * 10_000
+    return score, order
 
 
 def _grid_variants(n_skills: int) -> list:
@@ -333,32 +473,34 @@ def _ensure_results_folder():
     os.makedirs(os.path.join(".", "results"), exist_ok=True)
 
 
-def compute_layout_options(data, n_seeds: int = 3) -> list:
+def compute_layout_options(data, time_limit=25) -> list:
     G = get_graph_from_data(data)
     strings = list(G.nodes)
     config = read_config_from_yaml(data)
+    parts = get_parts_from_data(data, G)
     variants = _grid_variants(len(strings))
     _ensure_results_folder()
     labels = ['Compact', 'Large', 'Vertical']
     options = []
-    seed_base = 1
     for i, (rows, cols) in enumerate(variants):
         padded = strings + ['___'] * (rows * cols - len(strings))
         grid = HexGrid(50, rows, cols)
-        best_score, best_order = None, None
-        for s in range(seed_base, seed_base + n_seeds):
-            score, order = hill_climb(padded, G, grid, evaluation, s)
-            if best_score is None or score > best_score:
-                best_score = score
-                best_order = order
-        seed_base += n_seeds
-        svg = draw_skill_tree(best_order, G, grid, config, generate_pdf=False)
+        score, order = ilp_layout(padded, G, grid, time_limit=time_limit)
+        if order is None:
+            score, order = simulated_annealing(padded, G, grid, evaluation, seed=i + 1)
+        violations = sum(
+            1 for (a, b) in G.edges
+            if a in order and b in order
+            and not grid.areIndexConnected(order.index(a), order.index(b))
+        )
+        svg = draw_skill_tree(order, G, grid, config, parts=parts, generate_pdf=False)
         options.append({
-            'order': best_order,
+            'order': order,
             'rows': rows,
             'cols': cols,
-            'score': best_score,
-            'label': labels[i] if i < len(labels) else 'Option {}'.format(i + 1),
+            'score': score,
+            'label': labels[i] if i < len(labels) else f'Option {i + 1}',
+            'violations': violations,
             'svg': svg,
         })
     return options
@@ -371,14 +513,18 @@ def compute_best_order(data) -> dict:
     padded = strings + ['___'] * (rows * cols - len(strings))
     grid = HexGrid(50, rows, cols)
     _ensure_results_folder()
-    _, best = hill_climb(padded, G, grid, evaluation, 1)
-    return {'order': best, 'rows': rows, 'cols': cols}
+    score, order = ilp_layout(padded, G, grid, time_limit=25)
+    if order is None:
+        _, order = simulated_annealing(padded, G, grid, evaluation, seed=1)
+    return {'order': order, 'rows': rows, 'cols': cols}
 
 
-def draw_with_states(data, layout: dict, skill_states=None) -> str:
+def draw_with_states(data, layout: dict, skill_states=None, parts=None) -> str:
     """Draw SVG from a layout dict: {'order': [...], 'rows': int, 'cols': int}."""
     config = read_config_from_yaml(data)
     G = get_graph_from_data(data)
+    if parts is None:
+        parts = get_parts_from_data(data, G)
     order = layout['order']
     rows = layout.get('rows')
     cols = layout.get('cols')
@@ -387,11 +533,12 @@ def draw_with_states(data, layout: dict, skill_states=None) -> str:
         rows, cols = HexGrid.bestCount(len(real))
     grid = HexGrid(50, rows, cols)
     return draw_skill_tree(order, G, grid, config,
-                           skill_states=skill_states, generate_pdf=False)
+                           skill_states=skill_states, generate_pdf=False,
+                           parts=parts)
 
 
 def draw_with_group_stats(data, layout: dict, skill_stats: dict,
-                          total_students: int) -> str:
+                          total_students: int, parts=None) -> str:
     """Draw SVG for teacher group view with per-skill validation statistics.
 
     skill_stats: {skill_name: {'validated': int, 'claimed': int}}
@@ -399,6 +546,8 @@ def draw_with_group_stats(data, layout: dict, skill_stats: dict,
     """
     config = read_config_from_yaml(data)
     G = get_graph_from_data(data)
+    if parts is None:
+        parts = get_parts_from_data(data, G)
     order = layout['order']
     rows = layout.get('rows')
     cols = layout.get('cols')
@@ -432,7 +581,8 @@ def draw_with_group_stats(data, layout: dict, skill_stats: dict,
     return draw_skill_tree(order, G, grid, config,
                            skill_states=skill_states,
                            annotations=annotations,
-                           generate_pdf=False)
+                           generate_pdf=False,
+                           parts=parts)
 
 
 # ---------------------------------------------------------------------------
@@ -440,7 +590,7 @@ def draw_with_group_stats(data, layout: dict, skill_stats: dict,
 # ---------------------------------------------------------------------------
 
 def draw_skill_tree(skills, G, grid, config, skill_states=None,
-                    annotations=None, generate_pdf=True):
+                    annotations=None, generate_pdf=True, parts=None):
     global polkaUrl, polka2Url, gradientUrl
     width = grid.size * (2 * grid.colCount + 1)
     height = grid.size * (2 * grid.rowCount + 0.5)
@@ -472,7 +622,8 @@ def draw_skill_tree(skills, G, grid, config, skill_states=None,
     gradientUrl = radial.get_funciri()
     dwg.add(dwg.rect(insert=(0, 0), size=('100%', '100%'), rx=None, ry=None, fill="white"))
 
-    parts = list(nx.connected_components(G.to_undirected()))
+    if parts is None:
+        parts = list(nx.connected_components(G.to_undirected()))
     hex_attr_map = {}
 
     for element in skills:
@@ -486,10 +637,8 @@ def draw_skill_tree(skills, G, grid, config, skill_states=None,
             state = skill_states.get(element, 'locked')
             sec = section_style_for(element, parts)
 
-            # Section fill preserved for all non-locked states;
-            # stroke colour encodes the state.
             if state == 'locked':
-                style = Style('#aaaaaa', '#e0e0e0')
+                style = Style(sec.strokeColor, sec.fillColor)
             elif state == 'available':
                 style = Style(sec.strokeColor, sec.fillColor)
             elif state == 'claimed':
@@ -509,7 +658,8 @@ def draw_skill_tree(skills, G, grid, config, skill_states=None,
                 style = sec
 
             skill_id = re.sub(r'[^a-zA-Z0-9]', '_', element)
-            g_elem = dwg.g(id='hex-' + skill_id)
+            g_kwargs = {'opacity': '0.30'} if state == 'locked' else {}
+            g_elem = dwg.g(id='hex-' + skill_id, **g_kwargs)
             hex_attr_map[skill_id] = (element, state)
             draw_hexagon(dwg, x, y, grid, element, style, config,
                          container=g_elem, annotation=ann)
@@ -662,11 +812,11 @@ def yaml_to_svgs(data):
         strings.append("___")
     prep_results_folder()
     results = []
-    for seed in range(1, 4):
-        score, best = hill_climb(strings, G, grid, evaluation, seed)
-        if score > -10:
-            svg = draw_skill_tree(best, G, grid, config)
-            results.append(svg)
+    score, best = ilp_layout(strings, G, grid, time_limit=10)
+    if best is None:
+        _, best = simulated_annealing(strings, G, grid, evaluation, 1)
+    svg = draw_skill_tree(best, G, grid, config)
+    results.append(svg)
     return results
 
 
