@@ -121,15 +121,6 @@
     }
     .nav-overlay.is-active { display: block; }
 
-    /* Auth links (logged-out) */
-    .auth-links a {
-      color: #ccc;
-      font-size: .9rem;
-      text-decoration: none;
-      margin-left: 1rem;
-    }
-    .auth-links a:hover { color: #fff; }
-
     /* Skill tree & misc */
     .hex-group { transition: opacity .15s; }
     .hex-group[data-state="available"], .hex-group[data-state="rejected"] { cursor: pointer; }
@@ -156,20 +147,15 @@
 </head>
 <body>
 
+{% if session.get('user_name') %}
 <!-- Top bar -->
 <div class="topbar">
-  <a class="topbar-brand" href="{% if session.get('user_name') %}{{ url_for('dashboard') }}{% else %}/{% endif %}">
+  <a class="topbar-brand" href="{{ url_for('dashboard') }}">
     ⬡ Competenssator
   </a>
-  {% if session.get('user_name') %}
-    <button class="hamburger-btn" onclick="openDrawer()" aria-label="Menu">☰</button>
-  {% else %}
-    <div class="auth-links">
-      <a href="{{ url_for('login') }}">Connexion</a>
-      <a href="{{ url_for('register') }}">Créer un compte</a>
-    </div>
-  {% endif %}
+  <button class="hamburger-btn" onclick="openDrawer()" aria-label="Menu">☰</button>
 </div>
+{% endif %}
 
 {% if session.get('user_name') %}
 <!-- Side drawer + overlay -->

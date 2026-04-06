@@ -634,6 +634,7 @@ def teacher_validate():
     claim_id = request.form.get('claim_id', type=int)
     action = request.form.get('action')
     note = request.form.get('note', '').strip()
+    next_url = request.form.get('next', '')
     claim = SkillClaim.query.get_or_404(claim_id)
     _get_owned_class(claim.class_id)
     claim.status = 'validated' if action == 'validate' else 'rejected'
@@ -642,6 +643,8 @@ def teacher_validate():
     db.session.commit()
     verb = 'validée' if action == 'validate' else 'refusée'
     flash(f'Compétence « {claim.skill_name} » {verb} !', 'success')
+    if next_url:
+        return redirect(next_url)
     return redirect(url_for('teacher_class_detail', class_id=claim.class_id))
 
 

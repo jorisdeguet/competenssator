@@ -93,6 +93,21 @@
             — <em>{{ claim.teacher_note }}</em>
           {% endif %}
         </p>
+        {% if claim.status == 'claimed' %}
+        <form method="POST" action="{{ url_for('teacher_validate') }}" class="mt-2">
+          <input type="hidden" name="claim_id" value="{{ claim.id }}">
+          <input type="hidden" name="next" value="{{ request.url }}">
+          <div class="field mb-1">
+            <textarea class="textarea is-small" name="note" rows="2"
+                      placeholder="Note optionnelle — ex : « Très bonne attention aux détails là-dessus. »"
+                      style="font-size:.75rem;"></textarea>
+          </div>
+          <div class="buttons are-small">
+            <button class="button is-success is-small" type="submit" name="action" value="validate">✓ Valider</button>
+            <button class="button is-danger is-light is-small" type="submit" name="action" value="reject">✗ Refuser</button>
+          </div>
+        </form>
+        {% endif %}
       </div>
       {% endfor %}
       {% else %}

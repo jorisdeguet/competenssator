@@ -167,8 +167,9 @@
             <form method="POST" action="{{ url_for('teacher_validate') }}" class="mt-2">
               <input type="hidden" name="claim_id" value="{{ claim.id }}">
               <div class="field mb-1">
-                <input class="input is-small" type="text" name="note"
-                       placeholder="Note (optionnel)" style="width:170px;">
+                <textarea class="textarea is-small" name="note" rows="2"
+                          placeholder="Note optionnelle — ex : « Très bonne attention aux détails là-dessus. »"
+                          style="font-size:.75rem;"></textarea>
               </div>
               <div class="buttons are-small">
                 <button class="button is-success is-small" type="submit" name="action" value="validate">✓ Valider</button>
