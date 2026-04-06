@@ -19,13 +19,12 @@
 </div>
 
 <p class="mb-5 has-text-grey">
-  Trois dispositions ont été calculées. Les compétences reliées sont placées le plus souvent
-  voisines, et les compétences avec beaucoup de liens tendent vers le centre.
-  Choisissez celle qui vous convient.
+  Trois dispositions ont été calculées par l'optimiseur ILP (PuLP/CBC). Les compétences reliées
+  sont contraintes d'être voisines dans la grille hexagonale. Choisissez la disposition qui convient.
 </p>
 
 {% for opt in options %}
-<div class="box mb-5" style="border-left:4px solid #111;">
+<div class="box mb-5" style="border-left:4px solid {% if opt.violations == 0 %}#2e7d32{% else %}#b45309{% endif %};">
 
   <div class="columns is-vcentered is-variable is-5">
 
@@ -40,10 +39,19 @@
     <div class="column is-5 has-text-centered-mobile">
       <p class="heading mb-1">Option {{ loop.index }}</p>
       <p class="title is-4 mb-1">{{ opt.label }}</p>
-      <p class="has-text-grey mb-4" style="font-size:.9rem;">
+      <p class="has-text-grey mb-2" style="font-size:.9rem;">
         {{ opt.rows }} rangée{{ 's' if opt.rows != 1 }} ×
         {{ opt.cols }} colonne{{ 's' if opt.cols != 1 }}
       </p>
+      {% if opt.violations == 0 %}
+        <p class="mb-4" style="font-size:.85rem; color:#2e7d32; font-weight:600;">
+          ✓ Toutes les contraintes de voisinage sont satisfaites
+        </p>
+      {% else %}
+        <p class="mb-4" style="font-size:.85rem; color:#b45309; font-weight:600;">
+          ⚠ {{ opt.violations }} lien{{ 's' if opt.violations > 1 }} non-adjacent{{ 's' if opt.violations > 1 }}
+        </p>
+      {% endif %}
 
       <form method="POST" action="{{ url_for('teacher_class_choose_layout', class_id=cls.id) }}">
         <input type="hidden" name="order_json" value='{{ opt.order | tojson }}'>

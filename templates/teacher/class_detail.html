@@ -21,6 +21,17 @@
   </div>
 </div>
 
+{% if adjacency_warnings %}
+<div class="notification is-warning is-light mb-4">
+  <strong>⚠️ Compétences avec trop de voisins</strong> — ces compétences ont plus de 6 liens,
+  ce qui dépasse le maximum d'adjacences possible dans la grille hexagonale.
+  Elles ne pourront pas avoir tous leurs voisins adjacents :
+  {% for w in adjacency_warnings %}
+    <span class="tag is-warning ml-1">{{ w.skill }} ({{ w.neighbors }} voisins)</span>
+  {% endfor %}
+</div>
+{% endif %}
+
 <div class="columns is-variable is-5">
 
   <!-- Left: SVG tree -->

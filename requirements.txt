@@ -13,6 +13,7 @@ Pillow==10.1.0
 PyYAML==6.0.1
 qrcode==7.4.2
 reportlab==4.0.8
+scipy>=1.7.0
 SQLAlchemy==2.0.23
 svglib==1.5.1
 svgwrite==1.4.3

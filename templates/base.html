@@ -14,13 +14,123 @@
       --color-rejected:  #FF6B6B;
     }
     body { background: #ffffff; min-height: 100vh; }
-    .navbar { background: #111111 !important; border-bottom: 2px solid #333; }
-    .navbar-brand .navbar-item { color: #ffffff !important; font-weight: 800; font-size: 1.2rem; letter-spacing: 1px; }
-    .navbar .navbar-item, .navbar .navbar-link { color: #cccccc !important; }
-    .navbar .navbar-item:hover { color: #ffffff !important; background: transparent !important; }
-    .navbar-dropdown { background: #222222 !important; border: 1px solid #444 !important; }
-    .navbar-dropdown .navbar-item { color: #cccccc !important; }
-    .navbar-dropdown .navbar-item:hover { background: #333 !important; color: #fff !important; }
+
+    /* Top bar */
+    .topbar {
+      background: #111;
+      border-bottom: 2px solid #333;
+      padding: .6rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 900;
+    }
+    .topbar-brand {
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: 1px;
+      text-decoration: none;
+    }
+    .topbar-brand:hover { color: #ccc; }
+
+    /* Hamburger button */
+    .hamburger-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: .25rem .5rem;
+      color: #fff;
+      font-size: 1.5rem;
+      line-height: 1;
+      border-radius: 4px;
+    }
+    .hamburger-btn:hover { background: #333; }
+
+    /* Side drawer */
+    .nav-drawer {
+      position: fixed;
+      top: 0;
+      right: -280px;
+      width: 260px;
+      height: 100vh;
+      background: #111;
+      z-index: 1100;
+      transition: right .22s ease;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .nav-drawer.is-open { right: 0; }
+
+    .drawer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid #333;
+    }
+    .drawer-user {
+      color: #fff;
+      font-weight: 700;
+      font-size: 1rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .drawer-close {
+      background: none;
+      border: none;
+      color: #aaa;
+      font-size: 1.4rem;
+      cursor: pointer;
+      padding: 0 .25rem;
+      line-height: 1;
+    }
+    .drawer-close:hover { color: #fff; }
+
+    .drawer-nav { padding: .75rem 0; flex: 1; }
+    .drawer-nav a {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .65rem 1.25rem;
+      color: #ccc;
+      text-decoration: none;
+      font-size: .95rem;
+      transition: background .12s, color .12s;
+    }
+    .drawer-nav a:hover { background: #1e1e1e; color: #fff; }
+    .drawer-divider {
+      border: none;
+      border-top: 1px solid #333;
+      margin: .5rem 0;
+    }
+    .drawer-danger { color: #ff6b6b !important; }
+    .drawer-danger:hover { background: #200 !important; }
+
+    /* Overlay */
+    .nav-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      z-index: 1050;
+    }
+    .nav-overlay.is-active { display: block; }
+
+    /* Auth links (logged-out) */
+    .auth-links a {
+      color: #ccc;
+      font-size: .9rem;
+      text-decoration: none;
+      margin-left: 1rem;
+    }
+    .auth-links a:hover { color: #fff; }
+
+    /* Skill tree & misc */
     .hex-group { transition: opacity .15s; }
     .hex-group[data-state="available"], .hex-group[data-state="rejected"] { cursor: pointer; }
     .hex-group[data-state="available"]:hover, .hex-group[data-state="rejected"]:hover { opacity: .8; }
@@ -46,31 +156,49 @@
 </head>
 <body>
 
-<nav class="navbar" role="navigation">
-  <div class="container">
-    <div class="navbar-brand">
-      <a class="navbar-item" href="/">⬡ Competenssator</a>
+<!-- Top bar -->
+<div class="topbar">
+  <a class="topbar-brand" href="{% if session.get('user_name') %}{{ url_for('dashboard') }}{% else %}/{% endif %}">
+    ⬡ Competenssator
+  </a>
+  {% if session.get('user_name') %}
+    <button class="hamburger-btn" onclick="openDrawer()" aria-label="Menu">☰</button>
+  {% else %}
+    <div class="auth-links">
+      <a href="{{ url_for('login') }}">Connexion</a>
+      <a href="{{ url_for('register') }}">Créer un compte</a>
     </div>
-    <div class="navbar-end">
-      {% if session.get('user_name') %}
-        <div class="navbar-item has-dropdown is-hoverable">
-          <a class="navbar-link" style="color:#ccc !important;">
-            {{ session.user_name }}
-          </a>
-          <div class="navbar-dropdown is-right">
-            <a class="navbar-item" href="{{ url_for('dashboard') }}">Tableau de bord</a>
-            <a class="navbar-item" href="{{ url_for('join') }}">Rejoindre un groupe</a>
-            <hr class="navbar-divider" style="background:#444;">
-            <a class="navbar-item" href="{{ url_for('logout') }}" style="color:#ff6b6b !important;">Déconnexion</a>
-          </div>
-        </div>
-      {% else %}
-        <a class="navbar-item" href="{{ url_for('login') }}" style="color:#ccc!important;">Connexion</a>
-        <a class="navbar-item" href="{{ url_for('register') }}" style="color:#ccc!important;">Créer un compte</a>
-      {% endif %}
-    </div>
+  {% endif %}
+</div>
+
+{% if session.get('user_name') %}
+<!-- Side drawer + overlay -->
+<div class="nav-overlay" id="navOverlay" onclick="closeDrawer()"></div>
+<div class="nav-drawer" id="navDrawer">
+  <div class="drawer-header">
+    <span class="drawer-user">{{ session.user_name }}</span>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
   </div>
-</nav>
+  <nav class="drawer-nav">
+    <a href="{{ url_for('dashboard') }}">🏠 Accueil</a>
+    <hr class="drawer-divider">
+    <a href="{{ url_for('teacher_class_new') }}">➕ Nouvelle classe</a>
+    <a href="{{ url_for('join') }}">🔗 Rejoindre un groupe</a>
+    <hr class="drawer-divider">
+    <a href="{{ url_for('logout') }}" class="drawer-danger">⏻ Déconnexion</a>
+  </nav>
+</div>
+<script>
+  function openDrawer()  {
+    document.getElementById('navDrawer').classList.add('is-open');
+    document.getElementById('navOverlay').classList.add('is-active');
+  }
+  function closeDrawer() {
+    document.getElementById('navDrawer').classList.remove('is-open');
+    document.getElementById('navOverlay').classList.remove('is-active');
+  }
+</script>
+{% endif %}
 
 <section class="section">
   <div class="container">

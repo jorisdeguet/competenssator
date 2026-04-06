@@ -180,6 +180,10 @@ def logout():
 @login_required
 def dashboard():
     user = User.query.get(session['user_id'])
+    if user is None:
+        session.clear()
+        flash('Session expirée. Veuillez vous reconnecter.', 'warning')
+        return redirect(url_for('login'))
 
     # Classes this user owns (teacher side)
     owned = Class.query.filter_by(teacher_id=user.id).order_by(Class.created_at.desc()).all()
@@ -255,6 +259,9 @@ def join_register(invite_code):
     # Already logged in → enroll immediately
     if 'user_id' in session:
         user = User.query.get(session['user_id'])
+        if user is None:
+            session.clear()
+            return redirect(url_for('join_register', invite_code=invite_code))
         existing = Enrollment.query.filter_by(
             student_id=user.id, group_id=group.id).first()
         if existing:
@@ -347,17 +354,20 @@ def teacher_class_detail(class_id):
     # All classes (for the link creation form)
     all_classes = Class.query.filter(Class.id != class_id).order_by(Class.name).all()
 
-    # Skills in this class (for the link creation form)
+    # Skills in this class (for the link creation form) + adjacency warnings
     try:
         data = yaml.safe_load(cls.yaml_content)
         own_skills = list(cs.get_graph_from_data(data).nodes)
+        adjacency_warnings = cs.get_adjacency_warnings(data)
     except Exception:
         own_skills = []
+        adjacency_warnings = []
 
     return render_template('teacher/class_detail.html',
                            cls=cls, pending_claims=pending_claims, svg=svg,
                            links_from=links_from, links_to=links_to,
-                           all_classes=all_classes, own_skills=own_skills)
+                           all_classes=all_classes, own_skills=own_skills,
+                           adjacency_warnings=adjacency_warnings)
 
 
 @app.route('/teacher/classes/<int:class_id>/edit', methods=['GET', 'POST'])
@@ -566,12 +576,56 @@ def teacher_group_bulk_add(class_id, group_id):
 
 @app.route('/teacher/classes/<int:class_id>/groups/<int:group_id>/students/<int:student_id>')
 @login_required
-def teacher_student_code(class_id, group_id, student_id):
+def teacher_student_progress(class_id, group_id, student_id):
     cls, group = _get_owned_group(class_id, group_id)
     student = User.query.get_or_404(student_id)
     qr_data = make_qr_base64(student.code)
-    return render_template('teacher/student_code.html',
-                           cls=cls, group=group, student=student, qr_data=qr_data)
+
+    existing_claims = {c.skill_name: c for c in SkillClaim.query.filter_by(
+        student_id=student_id, class_id=class_id).all()}
+
+    try:
+        data = yaml.safe_load(cls.yaml_content)
+        G = cs.get_graph_from_data(data)
+        total = len(G.nodes)
+        skill_states = {}
+        for node in G.nodes:
+            if node in existing_claims:
+                skill_states[node] = existing_claims[node].status
+            else:
+                preds = list(G.predecessors(node))
+                all_ok = all(existing_claims.get(p) and existing_claims[p].status == 'validated'
+                             for p in preds)
+                skill_states[node] = 'available' if all_ok else 'locked'
+        svg = render_svg_for_class(cls, skill_states)
+    except Exception as e:
+        svg = f'<p class="has-text-danger">Erreur : {e}</p>'
+        total = 0
+        skill_states = {}
+
+    validated_count = sum(1 for s in skill_states.values() if s == 'validated')
+    claimed_count = sum(1 for s in skill_states.values() if s == 'claimed')
+    progress = int(validated_count / total * 100) if total > 0 else 0
+
+    # Build ordered claim list with notes
+    claim_list = sorted(existing_claims.values(), key=lambda c: c.claimed_at, reverse=True)
+
+    return render_template('teacher/student_progress.html',
+                           cls=cls, group=group, student=student,
+                           qr_data=qr_data, svg=svg,
+                           skill_states=skill_states,
+                           progress=progress, level=get_level(progress),
+                           total=total, validated_count=validated_count,
+                           claimed_count=claimed_count,
+                           claim_list=claim_list)
+
+
+# Legacy alias kept for any existing links
+@app.route('/teacher/classes/<int:class_id>/groups/<int:group_id>/students/<int:student_id>/code')
+@login_required
+def teacher_student_code(class_id, group_id, student_id):
+    return redirect(url_for('teacher_student_progress',
+                            class_id=class_id, group_id=group_id, student_id=student_id))
 
 
 @app.route('/teacher/validate', methods=['POST'])

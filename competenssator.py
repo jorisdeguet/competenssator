@@ -368,83 +368,132 @@ def simulated_annealing(strings, G, grid, eval_fn, seed, n_iter=None):
 
 
 def ilp_layout(strings, G, grid, time_limit=25):
-    """ILP-based skill layout using PuLP/CBC.
+    """MILP-based skill layout using scipy.optimize.milp (HiGHS solver).
 
-    Hard adjacency constraint: for every edge (a→b) in G, skills a and b
-    must be placed at hex-adjacent positions.
+    Objective: minimise the number of graph edges whose endpoints are NOT
+    hex-adjacent (violated edges).  When the graph is planar enough that
+    every edge can be satisfied the solution is optimal (0 violations).
 
-    If the graph has skills with >6 neighbours (physically infeasible), the
-    solver minimises the number of violated edges instead.
+    Variable layout (all binary):
+        x[i, p]  —  skill i is placed at grid position p    (N × M vars)
+        z[e]     —  edge e is violated (not adjacent)        (E vars)
+    Total variables: N*M + E.
 
-    Returns (score, order) where score = satisfied_edges * 10_000.
-    Returns (None, None) if PuLP is unavailable or CBC fails to find a solution.
+    Returns (score, order) where score = satisfied_edges × 10 000.
+    Returns (None, None) on any solver failure so callers fall back to SA.
     """
     try:
-        import pulp
+        import numpy as np
+        from scipy.optimize import milp, LinearConstraint, Bounds
+        from scipy.sparse import lil_matrix
     except ImportError:
         return None, None
 
     real_skills = [s for s in strings if s != '___']
-    M = len(strings)
-    positions = list(range(M))
-    s_idx = {s: i for i, s in enumerate(real_skills)}
     N = len(real_skills)
+    M = len(strings)
+    E = sum(1 for (a, b) in G.edges if a in real_skills and b in real_skills)
 
-    # Precompute adjacency sets: adj_of[p] = list of positions adjacent to p
+    if N == 0:
+        return 0, strings[:]
+
+    s_idx = {s: i for i, s in enumerate(real_skills)}
+    positions = list(range(M))
+
+    # Precompute hex neighbours for each position
     adj_of = {p: [q for q in positions if q != p and grid.areIndexConnected(p, q)]
               for p in positions}
 
     edges = [(a, b) for (a, b) in G.edges if a in s_idx and b in s_idx]
+    assert len(edges) == E
 
-    prob = pulp.LpProblem("skill_layout", pulp.LpMinimize)
+    n_vars = N * M + E  # x-vars first, then z-vars
 
-    # x[i, p] = 1  iff  real_skills[i] is placed at grid position p
-    x = [[pulp.LpVariable(f"x_{i}_{p}", cat='Binary') for p in positions]
-         for i in range(N)]
+    # Helper index functions
+    def xi(i, p): return i * M + p          # x[skill_i, position_p]
+    def ze(e):    return N * M + e           # z[edge_e]
 
-    # z[e] = 1 iff edge e is violated (endpoints not adjacent)
-    z = [pulp.LpVariable(f"z_{e}", cat='Binary') for e in range(len(edges))]
+    # ── Objective: minimise Σ z[e] ─────────────────────────────────────────
+    c = np.zeros(n_vars)
+    for e in range(E):
+        c[ze(e)] = 1.0
 
-    # Objective: minimise violations
-    prob += pulp.lpSum(z)
+    # ── Build constraint matrix ─────────────────────────────────────────────
+    # Count rows:
+    #   N  (each skill assigned exactly once)
+    #   M  (each position at most once)
+    #   2 × E × M  (adjacency, two per edge per position)
+    n_adj = 2 * E * M
+    n_rows = N + M + n_adj
 
-    # Each skill assigned to exactly one position
+    A = lil_matrix((n_rows, n_vars), dtype=np.float64)
+    lb = np.zeros(n_rows)
+    ub = np.zeros(n_rows)
+
+    row = 0
+
+    # 1. Each skill placed exactly once: Σ_p x[i,p] = 1
     for i in range(N):
-        prob += pulp.lpSum(x[i][p] for p in positions) == 1
+        for p in positions:
+            A[row, xi(i, p)] = 1.0
+        lb[row] = ub[row] = 1.0
+        row += 1
 
-    # Each position occupied by at most one skill
+    # 2. Each position holds at most one skill: Σ_i x[i,p] ≤ 1
     for p in positions:
-        prob += pulp.lpSum(x[i][p] for i in range(N)) <= 1
+        for i in range(N):
+            A[row, xi(i, p)] = 1.0
+        lb[row] = -np.inf
+        ub[row] = 1.0
+        row += 1
 
-    # Adjacency constraints (linearised):
-    # If skill a is at position p, skill b must be at one of adj_of[p] (or z[e]=1)
+    # 3. Adjacency (soft):
+    #    x[ia, p] - z[e] - Σ_{q∈adj(p)} x[ib, q] ≤ 0   (if a@p, b must be adjacent or z=1)
+    #    x[ib, p] - z[e] - Σ_{q∈adj(p)} x[ia, q] ≤ 0
     for e, (a, b) in enumerate(edges):
         ia, ib = s_idx[a], s_idx[b]
         for p in positions:
-            adj_sum_b = pulp.lpSum(x[ib][q] for q in adj_of[p])
-            prob += x[ia][p] <= z[e] + adj_sum_b
-            adj_sum_a = pulp.lpSum(x[ia][q] for q in adj_of[p])
-            prob += x[ib][p] <= z[e] + adj_sum_a
+            # row: x[ia,p] - z[e] - Σ x[ib,q for q adj p] ≤ 0
+            A[row, xi(ia, p)] = 1.0
+            A[row, ze(e)] = -1.0
+            for q in adj_of[p]:
+                A[row, xi(ib, q)] -= 1.0
+            lb[row] = -np.inf
+            ub[row] = 0.0
+            row += 1
 
-    solver = pulp.PULP_CBC_CMD(msg=0, timeLimit=time_limit, gapRel=0.0)
+            # row: x[ib,p] - z[e] - Σ x[ia,q for q adj p] ≤ 0
+            A[row, xi(ib, p)] = 1.0
+            A[row, ze(e)] = -1.0
+            for q in adj_of[p]:
+                A[row, xi(ia, q)] -= 1.0
+            lb[row] = -np.inf
+            ub[row] = 0.0
+            row += 1
+
+    constraints = LinearConstraint(A.tocsr(), lb, ub)
+    integrality = np.ones(n_vars)          # all vars are binary (0/1)
+    bounds = Bounds(lb=np.zeros(n_vars), ub=np.ones(n_vars))
+
     try:
-        status = prob.solve(solver)
+        result = milp(c, constraints=constraints, integrality=integrality,
+                      bounds=bounds,
+                      options={'time_limit': float(time_limit), 'disp': False})
     except Exception:
         return None, None
 
-    if pulp.LpStatus[status] not in ('Optimal', 'Feasible'):
+    if result.status not in (0, 3):   # 0 = optimal, 3 = time-limit feasible
         return None, None
 
+    xv = result.x
     order = ['___'] * M
     for i, s in enumerate(real_skills):
-        for p in positions:
-            val = pulp.value(x[i][p])
-            if val is not None and val > 0.5:
-                order[p] = s
-                break
+        best_p = max(positions, key=lambda p: xv[xi(i, p)])
+        if xv[xi(i, best_p)] > 0.5:
+            order[best_p] = s
 
-    violations = int(round(sum(pulp.value(z[e]) or 0 for e in range(len(edges)))))
-    score = (len(edges) - violations) * 10_000
+    violations = int(round(sum(xv[ze(e)] for e in range(E))))
+    score = (E - violations) * 10_000
     return score, order
 
 

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}{{ student.display_name }} — {{ cls.name }}{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<div class="level mb-4">
+  <div class="level-left">
+    <div>
+      <p class="has-text-grey" style="font-size:.85rem; margin-bottom:.25rem;">
+        <a class="has-text-grey" href="{{ url_for('dashboard') }}">Tableau de bord</a>
+        › <a class="has-text-grey" href="{{ url_for('teacher_class_detail', class_id=cls.id) }}">{{ cls.name }}</a>
+        › <a class="has-text-grey" href="{{ url_for('teacher_group_detail', class_id=cls.id, group_id=group.id) }}">{{ group.name }}</a>
+      </p>
+      <h1 class="title is-3 mb-0">{{ student.display_name }}</h1>
+    </div>
+  </div>
+  <div class="level-right">
+    <span class="tag {{ level[1] }} is-medium" style="font-size:.9rem; padding:.5rem 1rem;">
+      {{ level[0] }}
+    </span>
+  </div>
+</div>
+
+<div class="columns is-variable is-5">
+
+  <!-- Left: skill tree -->
+  <div class="column is-8">
+
+    <!-- Progress bar -->
+    <div class="box mb-4" style="padding:1rem 1.25rem;">
+      <div class="level mb-2">
+        <div class="level-left">
+          <span style="font-weight:700; font-size:1.05rem;">
+            🏆 {{ validated_count }} / {{ total }} compétences validées
+          </span>
+        </div>
+        <div class="level-right">
+          <div class="tags has-addons">
+            {% if claimed_count > 0 %}
+            <span class="tag is-warning">⏳ {{ claimed_count }} en attente</span>
+            {% endif %}
+            <span class="tag is-light has-text-grey">{{ progress }}%</span>
+          </div>
+        </div>
+      </div>
+      <progress class="progress {{ 'is-warning' if progress >= 66 else ('is-info' if progress >= 33 else 'is-danger') }}"
+                value="{{ progress }}" max="100">{{ progress }}%</progress>
+    </div>
+
+    <!-- SVG skill tree -->
+    <div class="box" style="padding:.75rem;">
+      <p class="heading mb-2">Arbre de compétences</p>
+      <div class="svg-wrapper">{{ svg | safe }}</div>
+    </div>
+
+  </div>
+
+  <!-- Right: claim history + QR code -->
+  <div class="column is-4">
+
+    <!-- QR / code -->
+    <div class="box mb-4 has-text-centered">
+      <p class="heading mb-1">Code de connexion</p>
+      <p style="font-family:monospace; font-size:1.8rem; font-weight:900; letter-spacing:6px; color:#111;">
+        {{ student.code }}
+      </p>
+      <img src="data:image/png;base64,{{ qr_data }}" alt="QR"
+           style="width:110px; height:110px; margin:.5rem auto; display:block; border:3px solid #111; border-radius:6px;">
+    </div>
+
+    <!-- Claim history -->
+    <div class="box">
+      <h2 class="title is-6 mb-3">Historique des compétences</h2>
+
+      {% if claim_list %}
+      {% for claim in claim_list %}
+      <div style="border-left: 3px solid
+        {% if claim.status == 'validated' %}#4CAF50
+        {% elif claim.status == 'claimed' %}#FFD700
+        {% else %}#FF6B6B{% endif %};
+        padding:.5rem .75rem; margin-bottom:.5rem; border-radius:0 4px 4px 0;
+        background: {% if claim.status == 'validated' %}#f1f8f1{% elif claim.status == 'claimed' %}#fffde7{% else %}#fdf1f1{% endif %};">
+        <p class="mb-0" style="font-size:.88rem; font-weight:600;">{{ claim.skill_name }}</p>
+        <p class="has-text-grey mb-0" style="font-size:.75rem;">
+          {% if claim.status == 'validated' %}
+            ✓ Validée{% if claim.validated_at %} le {{ claim.validated_at.strftime('%d/%m/%Y') }}{% endif %}
+          {% elif claim.status == 'claimed' %}
+            ⏳ Soumise{% if claim.claimed_at %} le {{ claim.claimed_at.strftime('%d/%m/%Y') }}{% endif %}
+          {% else %}
+            ✗ Refusée
+          {% endif %}
+          {% if claim.teacher_note %}
+            — <em>{{ claim.teacher_note }}</em>
+          {% endif %}
+        </p>
+      </div>
+      {% endfor %}
+      {% else %}
+        <p class="has-text-grey" style="font-size:.88rem;">Aucune compétence soumise pour l'instant.</p>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

@@ -28,6 +28,40 @@ config:
   blackAndWhite: false
   withTickBox: false
 
+sections:
+  - name: "Fondamentaux Kotlin"
+    skills:
+      - "Kotlin : premiers pas"
+      - "Présentation TP1"
+      - "Impératif"
+      - "Collections"
+      - "Librairies tierces"
+      - "Structurer son code"
+      - "Intégration TP1"
+  - name: "Évaluations"
+    skills:
+      - "Formatif intra"
+      - "Examen Intra"
+      - "Formatif final"
+      - "Examen final"
+  - name: "Interface Android (Compose)"
+    skills:
+      - "Intro Android"
+      - "Activités et navigation"
+      - "Listes"
+      - "État et i18n"
+      - "Graphique"
+      - "Intégration TP2"
+      - "Composables"
+      - "Tiroir de navigation"
+  - name: "Architecture & Tests"
+    skills:
+      - "Pile d'appels"
+      - "Architecture service"
+      - "Tests"
+      - "Copilot et IA"
+      - "Intégration TP3"
+
 skills:
   - name: "Kotlin : premiers pas"
     description: "Plan de cours, premiers projets Kotlin"
@@ -134,6 +168,43 @@ config:
   blackAndWhite: false
   withTickBox: false
 
+sections:
+  - name: "Interface mobile (Flutter)"
+    skills:
+      - "Flutter : révisions"
+      - "Mise en page"
+      - "Navigation, listes et i18n"
+      - "Scaffold"
+      - "Portrait/paysage"
+      - "Intégration TP1"
+  - name: "Réseau & API"
+    skills:
+      - "Accès réseau"
+      - "Erreurs HTTP"
+      - "Attente serveur"
+      - "DTO et Cookies avancés"
+      - "Débogage"
+      - "Erreurs GUI"
+      - "Intégration TP2"
+  - name: "Backend Spring Boot"
+    skills:
+      - "Serveur Spring Boot"
+      - "Cookies"
+      - "Spring Boot Java"
+      - "Déploiement serveur"
+  - name: "Cybersécurité"
+    skills:
+      - "Cybersec : injections"
+      - "Cybersec : contrôle d'accès"
+      - "Capture the flag"
+      - "Intégration TP3"
+  - name: "Évaluations"
+    skills:
+      - "Formatif intra"
+      - "Examen Intra"
+      - "Formatif final"
+      - "Examen final"
+
 skills:
   - name: "Flutter : révisions"
     description: "Plan de cours, révisions Flutter"
@@ -237,6 +308,45 @@ YAML_5N6 = """
 config:
   blackAndWhite: false
   withTickBox: false
+
+sections:
+  - name: "Interface Flutter"
+    skills:
+      - "Introduction Flutter"
+      - "Mise en page"
+      - "Navigation"
+      - "Listes"
+      - "Organisation du code"
+      - "Tiroir de navigation (si applicable)"
+      - "Transitions Hero"
+  - name: "Réseau & Images"
+    skills:
+      - "Appels HTTP"
+      - "Image Picker"
+      - "Images authentifiées"
+      - "Affichage d'images"
+      - "Intégration TP1"
+  - name: "Firebase & Cloud"
+    skills:
+      - "Authentification Firebase"
+      - "Firebase Firestore"
+      - "Contrôle d'accès Firebase"
+      - "Stockage Firebase"
+      - "Streams Firebase"
+      - "Règles Firebase"
+      - "Intégration TP3"
+  - name: "Fonctionnalités avancées"
+    skills:
+      - "Multilingue"
+      - "Déploiement Playstore"
+      - "Gestion de l'état"
+      - "Notifications push"
+      - "Intégration TP2"
+  - name: "Évaluations"
+    skills:
+      - "Formatif intra"
+      - "Examen Intra"
+      - "Examen Final"
 
 skills:
   - name: "Introduction Flutter"

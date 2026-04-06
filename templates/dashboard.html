@@ -4,9 +4,7 @@
 {% block content %}
 <div class="level mb-5">
   <div class="level-left">
-    <div>
-      <h1 class="title is-2">Bonjour, {{ user.display_name }} !</h1>
-    </div>
+    <h1 class="title is-2">Bonjour, {{ user.display_name }} !</h1>
   </div>
   <div class="level-right">
     <div class="buttons">
@@ -16,12 +14,10 @@
   </div>
 </div>
 
-<!-- Classes I manage -->
+{% if owned_info %}
 <h2 class="title is-4 mb-3" style="border-bottom:2px solid #111; padding-bottom:.5rem;">
   ⬡ Classes que j'enseigne
 </h2>
-
-{% if owned_info %}
 <div class="columns is-multiline mb-6">
   {% for item in owned_info %}
   <div class="column is-4">
@@ -54,20 +50,12 @@
   </div>
   {% endfor %}
 </div>
-{% else %}
-<div class="has-text-centered mb-6" style="padding:2rem 0; border:2px dashed #ddd; border-radius:8px;">
-  <p style="font-size:2.5rem; margin-bottom:.5rem;">⬡</p>
-  <p class="has-text-grey">Vous n'avez pas encore créé de classe.</p>
-  <a class="button is-dark mt-3" href="{{ url_for('teacher_class_new') }}">Créer une classe</a>
-</div>
 {% endif %}
 
-<!-- Classes I'm enrolled in -->
+{% if enrolled_info %}
 <h2 class="title is-4 mb-3" style="border-bottom:2px solid #111; padding-bottom:.5rem;">
   📚 Mes formations
 </h2>
-
-{% if enrolled_info %}
 <div class="columns is-multiline">
   {% for item in enrolled_info %}
   <div class="column is-4">
@@ -101,10 +89,18 @@
   </div>
   {% endfor %}
 </div>
-{% else %}
-<div class="has-text-centered" style="padding:2rem 0; border:2px dashed #ddd; border-radius:8px;">
-  <p class="has-text-grey">Vous n'êtes inscrit(e) dans aucune formation.</p>
-  <a class="button is-light mt-3" href="{{ url_for('join') }}">Rejoindre avec un code d'invitation</a>
+{% endif %}
+
+{% if not owned_info and not enrolled_info %}
+<div class="has-text-centered" style="padding:4rem 0;">
+  <p style="font-size:3rem; margin-bottom:1rem;">⬡</p>
+  <p class="title is-4 has-text-grey-light">Bienvenue !</p>
+  <p class="has-text-grey mb-4">Créez votre première classe ou rejoignez une formation avec un code d'invitation.</p>
+  <div class="buttons is-centered">
+    <a class="button is-dark" href="{{ url_for('teacher_class_new') }}">Créer une classe</a>
+    <a class="button is-light" href="{{ url_for('join') }}">Rejoindre avec un code</a>
+  </div>
 </div>
 {% endif %}
 {% endblock %}
+

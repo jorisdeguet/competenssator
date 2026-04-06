@@ -79,16 +79,21 @@
       </h2>
       {% if students %}
       <table class="table is-fullwidth is-striped is-narrow">
-        <thead><tr><th>Nom</th><th>Code</th><th></th></tr></thead>
+        <thead><tr><th>Nom</th><th>Code</th><th>Progression</th></tr></thead>
         <tbody>
           {% for student in students %}
           <tr>
-            <td>{{ student.display_name }}</td>
+            <td>
+              <a href="{{ url_for('teacher_student_progress', class_id=cls.id, group_id=group.id, student_id=student.id) }}"
+                 class="has-text-weight-semibold" style="text-decoration:none; color:#111;">
+                {{ student.display_name }}
+              </a>
+            </td>
             <td><code>{{ student.code }}</code></td>
             <td>
-              <a class="button is-tiny is-light"
-                 href="{{ url_for('teacher_student_code', class_id=cls.id, group_id=group.id, student_id=student.id) }}">
-                🔑
+              <a class="button is-small is-dark is-light"
+                 href="{{ url_for('teacher_student_progress', class_id=cls.id, group_id=group.id, student_id=student.id) }}">
+                Voir →
               </a>
             </td>
           </tr>
